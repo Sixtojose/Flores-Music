@@ -25,6 +25,10 @@
     .info{padding:12px}.info strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.info small{display:block;color:var(--muted);margin:6px 0 10px}
     .actions{display:flex;gap:6px}.actions button{padding:8px;font-size:12px;flex:1}
     .empty{color:var(--muted);padding:28px 0}
+    .upload-panel{background:var(--panel);border:1px solid #343741;border-radius:14px;padding:16px;margin:18px 0}
+    .upload-panel h3{margin:0 0 6px}.upload-panel p{color:var(--muted);margin:0 0 12px;font-size:13px}
+    .upload-panel input[type=file]{display:block;width:100%;margin:10px 0;padding:10px}
+    #uploadBtn{width:100%;margin-top:8px}#uploadStatus{color:var(--muted);font-size:13px;margin-top:10px;white-space:pre-wrap}
     .player{position:fixed;bottom:0;left:0;right:0;background:#191b21;border-top:1px solid #343741;padding:12px max(16px,calc((100% - 1100px)/2));z-index:10}
     .player-inner{display:flex;align-items:center;gap:12px}.now{min-width:0;flex:1}.now strong,.now small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.now small{color:var(--muted);margin-top:4px}
     audio,video{width:100%;max-width:500px}video{display:block;margin:16px auto;max-height:55vh;background:#000}
@@ -37,8 +41,15 @@
   <section class="hero"><h2>Sua música. Seus vídeos.</h2><p>Uma biblioteca para ouvir e assistir online ou offline.</p></section>
   <div class="tools">
     <input id="search" type="search" placeholder="Pesquisar músicas e vídeos…">
-    <button id="sync" class="primary">Sincronizar</button>
+    <button id="sync" class="primary" type="button">Sincronizar</button>
   </div>
+  <section class="upload-panel" aria-label="Enviar arquivos">
+    <h3>Adicionar do dispositivo</h3>
+    <p>Escolha músicas ou vídeos salvos no seu celular ou computador.</p>
+    <input id="mediaFiles" type="file" accept="audio/*,video/*" multiple>
+    <button id="uploadBtn" class="primary" type="button">Enviar para a biblioteca</button>
+    <div id="uploadStatus" role="status" aria-live="polite"></div>
+  </section>
   <div class="tabs">
     <button class="active" data-tab="all">Tudo</button>
     <button data-tab="audio">Músicas</button>
@@ -66,8 +77,8 @@
   4) Os arquivos no bucket devem estar no caminho indicado em storage_path.
   Nunca coloque a chave service_role neste HTML.
 */
-const SUPABASE_URL = "https://zlvawybbryqgsxqxhtrm.supabase.co";
-const SUPABASE_ANON_KEY = "sb_publishable_KpiuVnIuxa1yd1pFkybR1A_gILLL_C6";
+const SUPABASE_URL = "COLE_AQUI_A_URL_DO_SUPABASE";
+const SUPABASE_ANON_KEY = "COLE_AQUI_SUA_CHAVE_PUBLICA_ANON";
 const BUCKET = "media";
 const TABLE = "media";
 const db = (window.supabase && SUPABASE_URL.startsWith("https://") &&
@@ -93,6 +104,39 @@ async function saveOffline(item){
     await new Promise((res,rej)=>{const tx=d.transaction("files","readwrite");tx.objectStore("files").put({...item,blob});tx.oncomplete=res;tx.onerror=()=>rej(tx.error);});
     render();$("status").textContent="Arquivo salvo para uso offline.";
   }catch(e){alert("Falha ao baixar: "+e.message);}
+}
+async function uploadSelectedFiles(){
+  const input=$("mediaFiles"), button=$("uploadBtn"), status=$("uploadStatus");
+  const files=Array.from(input.files||[]);
+  if(!db){status.textContent="Supabase ainda não está configurado neste HTML. Preencha a URL e a chave pública.";return;}
+  if(!files.length){status.textContent="Escolha pelo menos um arquivo primeiro.";return;}
+  button.disabled=true;button.textContent="Enviando…";
+  let sent=0;const errors=[];
+  try{
+    for(const file of files){
+      const isAudio=file.type.startsWith("audio/");
+      const isVideo=file.type.startsWith("video/");
+      if(!isAudio&&!isVideo){errors.push(`${file.name}: formato não reconhecido.`);continue;}
+      if(file.size===0){errors.push(`${file.name}: arquivo vazio.`);continue;}
+      if(file.size>250*1024*1024){errors.push(`${file.name}: maior que 250 MB.`);continue;}
+      status.textContent=`Enviando ${sent+1} de ${files.length}: ${file.name}`;
+      const safeName=file.name.normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9._-]/g,"_");
+      const path=`${isAudio?"musicas":"videos"}/${Date.now()}-${crypto.randomUUID()}-${safeName}`;
+      const {error:storageError}=await db.storage.from(BUCKET).upload(path,file,{contentType:file.type||"application/octet-stream",upsert:false});
+      if(storageError){errors.push(`${file.name}: falha no Storage — ${storageError.message}`);continue;}
+      const title=file.name.replace(/\.[^.]+$/,"");
+      const {error:dbError}=await db.from(TABLE).insert({title,type:isAudio?"audio":"video",storage_path:path});
+      if(dbError){
+        errors.push(`${file.name}: arquivo chegou ao Storage, mas não foi registrado na tabela — ${dbError.message}`);
+        continue;
+      }
+      sent++;
+    }
+    await loadLibrary();
+    status.textContent=`Concluído: ${sent} de ${files.length} arquivo(s) enviado(s).`+(errors.length?"\n\nProblemas:\n"+errors.join("\n"):"");
+    if(sent===files.length)input.value="";
+  }catch(e){status.textContent="Erro durante o envio: "+(e.message||e);}
+  finally{button.disabled=false;button.textContent="Enviar para a biblioteca";}
 }
 async function loadLibrary(){
   if(!db){$("status").textContent="Falta configurar a URL e a chave pública do Supabase no HTML.";render();return;}
@@ -140,6 +184,7 @@ document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()
   b.classList.add("active");tab=b.dataset.tab;render();
 }));
 $("search").addEventListener("input",render);$("sync").addEventListener("click",loadLibrary);
+$("uploadBtn").addEventListener("click",uploadSelectedFiles);
 function updateConnection(){$("connection").textContent=navigator.onLine?"Online":"Offline";}
 window.addEventListener("online",()=>{updateConnection();loadLibrary();});
 window.addEventListener("offline",updateConnection);
