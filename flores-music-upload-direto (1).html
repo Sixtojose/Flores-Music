@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101114">
+  <title>Flores Music</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root{color-scheme:dark;--bg:#101114;--panel:#1b1d23;--muted:#a5a8b2;--green:#35d399}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:#fff;font:15px Arial,sans-serif}
+    header{padding:22px max(18px,calc((100% - 1100px)/2));display:flex;align-items:center;gap:12px;border-bottom:1px solid #292b32;position:sticky;top:0;background:#101114ed;backdrop-filter:blur(12px);z-index:5}
+    .logo{color:var(--green);font-size:25px}header h1{font-size:20px;margin:0}header small{color:var(--muted);margin-left:auto}
+    main{max-width:1100px;margin:auto;padding:24px 18px 120px}
+    .hero{background:linear-gradient(120deg,#173b34,#24213c);padding:25px;border-radius:18px;margin-bottom:22px}
+    .hero h2{font-size:clamp(25px,5vw,38px);margin:0 0 8px}.hero p{color:#d0d4da;margin:0}
+    .tools{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+    input,button{border:1px solid #343741;border-radius:10px;padding:12px;background:var(--panel);color:white}
+    input{flex:1;min-width:190px}button{cursor:pointer}button.active,.primary{background:var(--green);color:#071b14;border-color:var(--green);font-weight:bold}
+    .tabs{display:flex;gap:8px;margin:18px 0}.tabs button{min-width:95px}
+    #status{color:var(--muted);font-size:13px;margin:10px 0}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:14px}
+    .item{background:var(--panel);border:1px solid #292c34;border-radius:14px;overflow:hidden}
+    .cover{width:100%;aspect-ratio:1;object-fit:cover;background:#292c34;display:grid;place-items:center;color:var(--green);font-size:38px}
+    .info{padding:12px}.info strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.info small{display:block;color:var(--muted);margin:6px 0 10px}
+    .actions{display:flex;gap:6px}.actions button{padding:8px;font-size:12px;flex:1}
+    .empty{color:var(--muted);padding:28px 0}
+    .upload-panel{background:var(--panel);border:1px solid #343741;border-radius:14px;padding:16px;margin:18px 0}
+    .upload-panel h3{margin:0 0 6px}.upload-panel p{color:var(--muted);margin:0 0 12px;font-size:13px}
+    .upload-panel input[type=file]{display:block;width:100%;margin:10px 0;padding:10px}
+    #uploadBtn{width:100%;margin-top:8px}#uploadStatus{color:var(--muted);font-size:13px;margin-top:10px;white-space:pre-wrap}
+    .player{position:fixed;bottom:0;left:0;right:0;background:#191b21;border-top:1px solid #343741;padding:12px max(16px,calc((100% - 1100px)/2));z-index:10}
+    .player-inner{display:flex;align-items:center;gap:12px}.now{min-width:0;flex:1}.now strong,.now small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.now small{color:var(--muted);margin-top:4px}
+    audio,video{width:100%;max-width:500px}video{display:block;margin:16px auto;max-height:55vh;background:#000}
+    @media(max-width:600px){header{padding:16px}main{padding:16px 12px 130px}.player-inner{flex-wrap:wrap}.player audio{order:2;max-width:none;width:100%}.now{flex-basis:55%}}
+  </style>
+</head>
+<body>
+<header><span class="logo">♫</span><h1>FLORES MUSIC</h1><small id="connection">Verificando conexão…</small></header>
+<main>
+  <section class="hero"><h2>Sua música. Seus vídeos.</h2><p>Uma biblioteca para ouvir e assistir online ou offline.</p></section>
+  <div class="tools">
+    <input id="search" type="search" placeholder="Pesquisar músicas e vídeos…">
+    <button id="sync" class="primary" type="button">Sincronizar</button>
+  </div>
+  <section class="upload-panel" aria-label="Enviar arquivos">
+    <h3>Adicionar do dispositivo</h3>
+    <p>Escolha músicas ou vídeos salvos no seu celular ou computador.</p>
+    <input id="mediaFiles" type="file" accept="audio/*,video/*" multiple>
+    <button id="uploadBtn" class="primary" type="button">Enviar para a biblioteca</button>
+    <div id="uploadStatus" role="status" aria-live="polite"></div>
+  </section>
+  <div class="tabs">
+    <button class="active" data-tab="all">Tudo</button>
+    <button data-tab="audio">Músicas</button>
+    <button data-tab="video">Vídeos</button>
+    <button data-tab="saved">Baixados</button>
+  </div>
+  <div id="status">Configure o Supabase para carregar sua biblioteca online.</div>
+  <div id="library" class="grid"></div>
+  <video id="videoPlayer" controls playsinline hidden></video>
+</main>
+<div class="player">
+  <div class="player-inner">
+    <div class="now"><strong id="nowTitle">Nada tocando</strong><small id="nowSub">Escolha uma música da biblioteca</small></div>
+    <audio id="audioPlayer" controls preload="metadata"></audio>
+  </div>
+</div>
+<script>
+/*
+  CONFIGURAÇÃO:
+  1) Crie uma tabela public.media com:
+     id (uuid), title (text), type (text: 'audio' ou 'video'),
+     storage_path (text), cover_url (text, opcional), created_at (timestamptz).
+  2) Crie um bucket público no Supabase Storage chamado "media".
+  3) Coloque sua URL e sua chave publishable/anon abaixo.
+  4) Os arquivos no bucket devem estar no caminho indicado em storage_path.
+  Nunca coloque a chave service_role neste HTML.
+*/
+const SUPABASE_URL = "COLE_AQUI_A_URL_DO_SUPABASE";
+const SUPABASE_ANON_KEY = "COLE_AQUI_SUA_CHAVE_PUBLICA_ANON";
+const BUCKET = "media";
+const TABLE = "media";
+const db = (window.supabase && SUPABASE_URL.startsWith("https://") &&
+            !SUPABASE_URL.includes("COLE_AQUI") && !SUPABASE_ANON_KEY.includes("COLE_AQUI"))
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+const $ = id => document.getElementById(id);
+const audio = $("audioPlayer"), video = $("videoPlayer");
+let records = [], tab = "all";
+const DB_NAME = "flores-music-offline";
+function openLocalDB(){return new Promise((resolve,reject)=>{
+  const req=indexedDB.open(DB_NAME,1);
+  req.onupgradeneeded=()=>req.result.createObjectStore("files",{keyPath:"id"});
+  req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
+});}
+async function savedFiles(){const d=await openLocalDB();return new Promise((res,rej)=>{
+  const r=d.transaction("files").objectStore("files").getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);
+});}
+async function saveOffline(item){
+  try{
+    const response=await fetch(item.url);if(!response.ok)throw Error("Não foi possível baixar o arquivo.");
+    const blob=await response.blob();const d=await openLocalDB();
+    await new Promise((res,rej)=>{const tx=d.transaction("files","readwrite");tx.objectStore("files").put({...item,blob});tx.oncomplete=res;tx.onerror=()=>rej(tx.error);});
+    render();$("status").textContent="Arquivo salvo para uso offline.";
+  }catch(e){alert("Falha ao baixar: "+e.message);}
+}
+async function uploadSelectedFiles(){
+  const input=$("mediaFiles"), button=$("uploadBtn"), status=$("uploadStatus");
+  const files=Array.from(input.files||[]);
+  if(!db){status.textContent="Supabase ainda não está configurado neste HTML. Preencha a URL e a chave pública.";return;}
+  if(!files.length){status.textContent="Escolha pelo menos um arquivo primeiro.";return;}
+  button.disabled=true;button.textContent="Enviando…";
+  let sent=0;const errors=[];
+  try{
+    for(const file of files){
+      const isAudio=file.type.startsWith("audio/");
+      const isVideo=file.type.startsWith("video/");
+      if(!isAudio&&!isVideo){errors.push(`${file.name}: formato não reconhecido.`);continue;}
+      if(file.size===0){errors.push(`${file.name}: arquivo vazio.`);continue;}
+      if(file.size>250*1024*1024){errors.push(`${file.name}: maior que 250 MB.`);continue;}
+      status.textContent=`Enviando ${sent+1} de ${files.length}: ${file.name}`;
+      const safeName=file.name.normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9._-]/g,"_");
+      const path=`${isAudio?"musicas":"videos"}/${Date.now()}-${crypto.randomUUID()}-${safeName}`;
+      const {error:storageError}=await db.storage.from(BUCKET).upload(path,file,{contentType:file.type||"application/octet-stream",upsert:false});
+      if(storageError){errors.push(`${file.name}: falha no Storage — ${storageError.message}`);continue;}
+      const title=file.name.replace(/\.[^.]+$/,"");
+      const {error:dbError}=await db.from(TABLE).insert({title,type:isAudio?"audio":"video",storage_path:path});
+      if(dbError){
+        errors.push(`${file.name}: arquivo chegou ao Storage, mas não foi registrado na tabela — ${dbError.message}`);
+        continue;
+      }
+      sent++;
+    }
+    await loadLibrary();
+    status.textContent=`Concluído: ${sent} de ${files.length} arquivo(s) enviado(s).`+(errors.length?"\n\nProblemas:\n"+errors.join("\n"):"");
+    if(sent===files.length)input.value="";
+  }catch(e){status.textContent="Erro durante o envio: "+(e.message||e);}
+  finally{button.disabled=false;button.textContent="Enviar para a biblioteca";}
+}
+async function loadLibrary(){
+  if(!db){$("status").textContent="Falta configurar a URL e a chave pública do Supabase no HTML.";render();return;}
+  $("status").textContent="Carregando biblioteca…";
+  try{
+    const {data,error}=await db.from(TABLE).select("*").order("created_at",{ascending:false});
+    if(error)throw error;
+    records=(data||[]).map(x=>({...x,url:db.storage.from(BUCKET).getPublicUrl(x.storage_path).data.publicUrl}));
+    $("status").textContent=`${records.length} arquivo(s) na biblioteca.`;
+    render();
+  }catch(e){$("status").textContent="Erro ao carregar: "+e.message+" — exibindo arquivos já baixados.";render();}
+}
+function escapeHTML(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+async function render(){
+  const offline=await savedFiles();
+  let list=tab==="saved"?offline:records;
+  if(tab==="audio")list=records.filter(x=>x.type==="audio");
+  if(tab==="video")list=records.filter(x=>x.type==="video");
+  const q=$("search").value.toLowerCase().trim();
+  list=list.filter(x=>(x.title||"").toLowerCase().includes(q));
+  $("library").innerHTML=list.length?list.map(x=>{
+    const isSaved=offline.some(y=>y.id===x.id);
+    return `<article class="item">
+      ${x.cover_url?`<img class="cover" src="${escapeHTML(x.cover_url)}" alt="">`:`<div class="cover">${x.type==="video"?"▶":"♫"}</div>`}
+      <div class="info"><strong>${escapeHTML(x.title)}</strong><small>${x.type==="video"?"Vídeo":"Música"} ${isSaved?"· Disponível offline":""}</small>
+      <div class="actions"><button onclick="playItem('${String(x.id).replace(/'/g,"")}')">▶ Tocar</button>
+      ${!isSaved&&x.url?`<button onclick="downloadItem('${String(x.id).replace(/'/g,"")}')">↓ Offline</button>`:""}</div></div></article>`;
+  }).join(""):`<div class="empty">Nenhum arquivo nesta seção ainda.</div>`;
+}
+async function playItem(id){
+  const local=(await savedFiles()).find(x=>String(x.id)===String(id));
+  const item=local||records.find(x=>String(x.id)===String(id));if(!item)return;
+  const src=local?URL.createObjectURL(local.blob):item.url;
+  $("nowTitle").textContent=item.title;$("nowSub").textContent=local?"Reprodução offline":"Flores Music";
+  if(item.type==="video"){
+    audio.pause();video.hidden=false;video.src=src;video.play().catch(()=>{});
+    video.scrollIntoView({behavior:"smooth",block:"center"});
+  }else{
+    video.pause();video.hidden=true;video.removeAttribute("src");audio.src=src;audio.play().catch(()=>{});
+  }
+}
+function downloadItem(id){const item=records.find(x=>String(x.id)===String(id));if(item)saveOffline(item);}
+document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");tab=b.dataset.tab;render();
+}));
+$("search").addEventListener("input",render);$("sync").addEventListener("click",loadLibrary);
+$("uploadBtn").addEventListener("click",uploadSelectedFiles);
+function updateConnection(){$("connection").textContent=navigator.onLine?"Online":"Offline";}
+window.addEventListener("online",()=>{updateConnection();loadLibrary();});
+window.addEventListener("offline",updateConnection);
+updateConnection();loadLibrary();
+</script>
+</body>
+</html>
