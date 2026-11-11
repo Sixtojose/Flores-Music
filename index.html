@@ -93,9 +93,22 @@ function openLocalDB(){return new Promise((resolve,reject)=>{
   req.onupgradeneeded=()=>req.result.createObjectStore("files",{keyPath:"id"});
   req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
 });}
-async function savedFiles(){const d=await openLocalDB();return new Promise((res,rej)=>{
-  const r=d.transaction("files").objectStore("files").getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);
-});}
+let offlineCache = [];
+
+async function savedFiles(){
+  const d = await openLocalDB();
+
+  return new Promise((res, rej) => {
+    const r = d.transaction("files").objectStore("files").getAll();
+
+    r.onsuccess = () => {
+      offlineCache = r.result;
+      res(offlineCache);
+    };
+
+    r.onerror = () => rej(r.error);
+  });
+}
 async function saveOffline(item){
   try{
     const response=await fetch(item.url);if(!response.ok)throw Error("Não foi possível baixar o arquivo.");
