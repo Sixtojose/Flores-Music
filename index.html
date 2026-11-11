@@ -7,32 +7,30 @@
   <title>Flores Music</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root{color-scheme:dark;--bg:#101114;--panel:#1b1d23;--muted:#a5a8b2;--green:#35d399}
-    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:#fff;font:15px Arial,sans-serif}
-    header{padding:22px max(18px,calc((100% - 1100px)/2));display:flex;align-items:center;gap:12px;border-bottom:1px solid #292b32;position:sticky;top:0;background:#101114ed;backdrop-filter:blur(12px);z-index:5}
-    .logo{color:var(--green);font-size:25px}header h1{font-size:20px;margin:0}header small{color:var(--muted);margin-left:auto}
-    main{max-width:1100px;margin:auto;padding:24px 18px 120px}
-    .hero{background:linear-gradient(120deg,#173b34,#24213c);padding:25px;border-radius:18px;margin-bottom:22px}
-    .hero h2{font-size:clamp(25px,5vw,38px);margin:0 0 8px}.hero p{color:#d0d4da;margin:0}
-    .tools{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
-    input,button{border:1px solid #343741;border-radius:10px;padding:12px;background:var(--panel);color:white}
-    input{flex:1;min-width:190px}button{cursor:pointer}button.active,.primary{background:var(--green);color:#071b14;border-color:var(--green);font-weight:bold}
-    .tabs{display:flex;gap:8px;margin:18px 0}.tabs button{min-width:95px}
-    #status{color:var(--muted);font-size:13px;margin:10px 0}
-    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:14px}
-    .item{background:var(--panel);border:1px solid #292c34;border-radius:14px;overflow:hidden}
-    .cover{width:100%;aspect-ratio:1;object-fit:cover;background:#292c34;display:grid;place-items:center;color:var(--green);font-size:38px}
-    .info{padding:12px}.info strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.info small{display:block;color:var(--muted);margin:6px 0 10px}
-    .actions{display:flex;gap:6px}.actions button{padding:8px;font-size:12px;flex:1}
-    .empty{color:var(--muted);padding:28px 0}
-    .upload-panel{background:var(--panel);border:1px solid #343741;border-radius:14px;padding:16px;margin:18px 0}
-    .upload-panel h3{margin:0 0 6px}.upload-panel p{color:var(--muted);margin:0 0 12px;font-size:13px}
-    .upload-panel input[type=file]{display:block;width:100%;margin:10px 0;padding:10px}
-    #uploadBtn{width:100%;margin-top:8px}#uploadStatus{color:var(--muted);font-size:13px;margin-top:10px;white-space:pre-wrap}
-    .player{position:fixed;bottom:0;left:0;right:0;background:#191b21;border-top:1px solid #343741;padding:12px max(16px,calc((100% - 1100px)/2));z-index:10}
-    .player-inner{display:flex;align-items:center;gap:12px}.now{min-width:0;flex:1}.now strong,.now small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.now small{color:var(--muted);margin-top:4px}
-    audio,video{width:100%;max-width:500px}video{display:block;margin:16px auto;max-height:55vh;background:#000}
-    @media(max-width:600px){header{padding:16px}main{padding:16px 12px 130px}.player-inner{flex-wrap:wrap}.player audio{order:2;max-width:none;width:100%}.now{flex-basis:55%}}
+    :root{color-scheme:dark;--bg:#080a12;--panel:#111625;--panel2:#171f32;--muted:#9ba8c4;--line:#26314a;--neon:#a78bfa;--cyan:#38d9ff;--green:#35d399}
+    *{box-sizing:border-box}html{min-height:100%;background:var(--bg)}body{margin:0;background:radial-gradient(ellipse at 15% 0%,#20204b 0,transparent 38%),radial-gradient(ellipse at 95% 18%,#102f45 0,transparent 32%),var(--bg);color:#f7f8ff;font:15px Inter,system-ui,-apple-system,Arial,sans-serif;min-height:100vh}
+    header{padding:18px max(18px,calc((100% - 1180px)/2));display:flex;align-items:center;gap:13px;border-bottom:1px solid #ffffff12;position:sticky;top:0;background:#090c16eF;backdrop-filter:blur(18px);z-index:5;box-shadow:0 8px 30px #0004}
+    .logo{width:42px;height:42px;display:grid;place-items:center;border-radius:14px;color:#fff;font-size:25px;background:linear-gradient(135deg,#8b5cf6,#22d3ee);box-shadow:0 0 24px #8b5cf655}header h1{font-size:19px;letter-spacing:2.5px;margin:0;font-weight:850}header small{color:#8feaff;margin-left:auto;font-size:12px}
+    main{max-width:1180px;margin:auto;padding:28px 20px 140px}
+    .hero{position:relative;overflow:hidden;background:linear-gradient(115deg,#241d4d 0%,#172b4b 55%,#0d4050 100%);padding:clamp(26px,5vw,48px);border:1px solid #a78bfa44;border-radius:26px;margin-bottom:25px;box-shadow:0 18px 55px #0005}
+    .hero:after{content:'♫';position:absolute;right:5%;top:50%;transform:translateY(-50%);font-size:clamp(100px,20vw,210px);line-height:1;color:#ffffff0c;pointer-events:none}.hero h2{font-size:clamp(28px,5vw,46px);letter-spacing:-1.4px;margin:0 0 10px;max-width:680px}.hero p{color:#c6d7f5;margin:0;font-size:15px}
+    .tools{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0}.tools input{background:#101729;border:1px solid #34415f;box-shadow:inset 0 1px 0 #ffffff08}.tools input:focus{outline:2px solid #8b5cf6;border-color:transparent}
+    input,button{border:1px solid #34415f;border-radius:13px;padding:13px 15px;background:var(--panel);color:white;font:inherit}input{flex:1;min-width:190px}input::placeholder{color:#7f8ba7}button{cursor:pointer;transition:transform .18s,border-color .18s,filter .18s}button:hover{transform:translateY(-1px);border-color:#8b5cf6}button:active{transform:scale(.98)}button.active,.primary{background:linear-gradient(110deg,#8b5cf6,#22c8e5);color:#fff;border:0;font-weight:750;box-shadow:0 6px 22px #6366f144}
+    .tabs{display:flex;gap:9px;margin:20px 0;overflow-x:auto;padding:2px 1px 8px}.tabs button{min-width:95px;background:#111827;border-color:#2b3650;color:#b9c5dd;white-space:nowrap}.tabs button.active{background:linear-gradient(110deg,#8b5cf6,#22c8e5);color:white;border:0}
+    #status{color:var(--muted);font-size:13px;margin:13px 2px 17px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:17px}
+    .item{background:linear-gradient(155deg,#182137,#101522);border:1px solid #ffffff12;border-radius:19px;overflow:hidden;box-shadow:0 10px 28px #0003;transition:transform .2s,border-color .2s}.item:hover{transform:translateY(-4px);border-color:#8b5cf688}
+    .cover{width:100%;aspect-ratio:1;object-fit:cover;background:linear-gradient(135deg,#24204b,#103c50);display:grid;place-items:center;color:#6ee7ff;font-size:48px}
+    .info{padding:14px}.info strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}.info small{display:block;color:#94a3bd;margin:7px 0 12px}
+    .actions{display:flex;gap:7px}.actions button{padding:9px 7px;font-size:12px;flex:1;background:#202a41;border-color:#34415f}.actions button:first-child{background:linear-gradient(110deg,#7654d8,#277b9e);border:0}.actions button.danger{background:#512432;border-color:#8b334b}.actions button.restore{background:#17483f;border-color:#237c69}.item-actions{display:flex;gap:7px;margin-top:8px}.item-actions button{flex:1;padding:8px 6px;font-size:11px;background:#202a41;border-color:#34415f}.item-actions button.danger{background:#512432;border-color:#8b334b}.item-actions button.restore{background:#17483f;border-color:#237c69}
+    .empty{color:var(--muted);padding:32px 0;text-align:center}
+    .upload-panel{background:linear-gradient(145deg,#151d31,#101522);border:1px solid #34415f;border-radius:20px;padding:19px;margin:22px 0;box-shadow:0 12px 30px #0003}
+    .upload-panel h3{margin:0 0 7px;font-size:17px}.upload-panel p{color:var(--muted);margin:0 0 13px;font-size:13px}.upload-panel input[type=file]{display:block;width:100%;margin:10px 0;padding:10px;background:#0d1423}
+    #uploadBtn{width:100%;margin-top:8px}#uploadStatus{color:#a9b8d3;font-size:13px;margin-top:11px;white-space:pre-wrap;line-height:1.55}
+    .player{position:fixed;bottom:0;left:0;right:0;background:#0b1020ed;border-top:1px solid #ffffff20;padding:13px max(16px,calc((100% - 1180px)/2));z-index:10;backdrop-filter:blur(18px);box-shadow:0 -12px 35px #0006}
+    .player-inner{display:flex;align-items:center;gap:14px}.now{min-width:0;flex:1}.now strong,.now small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.now strong{font-size:14px}.now small{color:#9ba8c4;margin-top:5px;font-size:12px}
+    audio,video{width:100%;max-width:520px;accent-color:#a78bfa}video{display:block;margin:18px auto;max-height:55vh;background:#000;border-radius:16px}
+    @media(max-width:600px){header{padding:13px 15px}header h1{font-size:16px;letter-spacing:1.7px}main{padding:18px 13px 150px}.hero{border-radius:21px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.item{border-radius:15px}.info{padding:11px}.player-inner{flex-wrap:wrap}.player audio{order:2;max-width:none;width:100%}.now{flex-basis:55%}.tabs button{min-width:88px;padding:11px 12px}}
   </style>
 </head>
 <body>
@@ -55,6 +53,7 @@
     <button data-tab="audio">Músicas</button>
     <button data-tab="video">Vídeos</button>
     <button data-tab="saved">Baixados</button>
+    <button data-tab="trash">🗑️ Lixeira</button>
   </div>
   <div id="status">Configure o Supabase para carregar sua biblioteca online.</div>
   <div id="library" class="grid"></div>
@@ -145,7 +144,9 @@ async function loadLibrary(){
     const {data,error}=await db.from(TABLE).select("*").order("created_at",{ascending:false});
     if(error)throw error;
     records=(data||[]).map(x=>({...x,url:db.storage.from(BUCKET).getPublicUrl(x.storage_path).data.publicUrl}));
-    $("status").textContent=`${records.length} arquivo(s) na biblioteca.`;
+    const activeCount=records.filter(x=>!x.deleted_at).length;
+    const trashCount=records.filter(x=>!!x.deleted_at).length;
+    $("status").textContent=`${activeCount} arquivo(s) na biblioteca · ${trashCount} na lixeira.`;
     render();
   }catch(e){$("status").textContent="Erro ao carregar: "+e.message+" — exibindo arquivos já baixados.";render();}
 }
@@ -153,18 +154,43 @@ function escapeHTML(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;",
 async function render(){
   const offline=await savedFiles();
   let list=tab==="saved"?offline:records;
-  if(tab==="audio")list=records.filter(x=>x.type==="audio");
-  if(tab==="video")list=records.filter(x=>x.type==="video");
+  if(tab==="trash")list=records.filter(x=>!!x.deleted_at);
+  else if(tab==="all")list=records.filter(x=>!x.deleted_at);
+  else if(tab==="audio")list=records.filter(x=>x.type==="audio"&&!x.deleted_at);
+  else if(tab==="video")list=records.filter(x=>x.type==="video"&&!x.deleted_at);
   const q=$("search").value.toLowerCase().trim();
   list=list.filter(x=>(x.title||"").toLowerCase().includes(q));
   $("library").innerHTML=list.length?list.map(x=>{
     const isSaved=offline.some(y=>y.id===x.id);
-    return `<article class="item">
-      ${x.cover_url?`<img class="cover" src="${escapeHTML(x.cover_url)}" alt="">`:`<div class="cover">${x.type==="video"?"▶":"♫"}</div>`}
-      <div class="info"><strong>${escapeHTML(x.title)}</strong><small>${x.type==="video"?"Vídeo":"Música"} ${isSaved?"· Disponível offline":""}</small>
-      <div class="actions"><button onclick="playItem('${String(x.id).replace(/'/g,"")}')">▶ Tocar</button>
-      ${!isSaved&&x.url?`<button onclick="downloadItem('${String(x.id).replace(/'/g,"")}')">↓ Offline</button>`:""}</div></div></article>`;
-  }).join(""):`<div class="empty">Nenhum arquivo nesta seção ainda.</div>`;
+    const inTrash=!!x.deleted_at;
+    const normalActions=`<div class="actions"><button onclick="playItem('${String(x.id).replace(/'/g,"\\'")}')">▶ Tocar</button>${!isSaved&&x.url?`<button onclick="downloadItem('${String(x.id).replace(/'/g,"\\'")}')">↓ Offline</button>`:""}</div><div class="item-actions"><button class="danger" onclick="moveToTrash('${String(x.id).replace(/'/g,"\\'")}')">🗑️ Lixeira</button></div>`;
+    const trashActions=`<div class="item-actions"><button class="restore" onclick="restoreItem('${String(x.id).replace(/'/g,"\\'")}')">↶ Restaurar</button><button class="danger" onclick="deletePermanently('${String(x.id).replace(/'/g,"\\'")}')">Excluir de vez</button></div>`;
+    return `<article class="item">${x.cover_url?`<img class="cover" src="${escapeHTML(x.cover_url)}" alt="">`:`<div class="cover">${x.type==="video"?"▶":"♫"}</div>`}<div class="info"><strong>${escapeHTML(x.title)}</strong><small>${x.type==="video"?"Vídeo":"Música"} ${isSaved?"· Disponível offline":""} ${inTrash?"· Na lixeira":""}</small>${inTrash?trashActions:normalActions}</div></article>`;
+  }).join(""):`<div class="empty">${tab==="trash"?"A lixeira está vazia.":"Nenhum arquivo nesta seção ainda."}</div>`;
+}
+async function moveToTrash(id){
+  if(!db)return;
+  const item=records.find(x=>String(x.id)===String(id));if(!item)return;
+  if(!confirm(`Mover “${item.title}” para a lixeira?`))return;
+  const {error}=await db.from(TABLE).update({deleted_at:new Date().toISOString()}).eq("id",id);
+  if(error){alert("Não foi possível mover para a lixeira: "+error.message);return;}
+  await loadLibrary();
+}
+async function restoreItem(id){
+  if(!db)return;
+  const {error}=await db.from(TABLE).update({deleted_at:null}).eq("id",id);
+  if(error){alert("Não foi possível restaurar: "+error.message);return;}
+  await loadLibrary();
+}
+async function deletePermanently(id){
+  if(!db)return;
+  const item=records.find(x=>String(x.id)===String(id));if(!item)return;
+  if(!confirm(`Excluir DEFINITIVAMENTE “${item.title}”? O arquivo também será apagado do armazenamento e não poderá ser restaurado.`))return;
+  const {error:storageError}=await db.storage.from(BUCKET).remove([item.storage_path]);
+  if(storageError){alert("O arquivo não foi apagado do armazenamento: "+storageError.message);return;}
+  const {error:rowError}=await db.from(TABLE).delete().eq("id",id);
+  if(rowError){alert("O arquivo foi removido do armazenamento, mas o registro não foi apagado: "+rowError.message);return;}
+  await loadLibrary();
 }
 async function playItem(id){
   const local=(await savedFiles()).find(x=>String(x.id)===String(id));
