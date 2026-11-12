@@ -146,26 +146,39 @@ async function saveOffline(item){
   }catch(e){alert("Falha ao baixar: "+e.message);}
 }
 const MEDIA_MIME={m4a:"audio/mp4",mp3:"audio/mpeg",aac:"audio/aac",wav:"audio/wav",ogg:"audio/ogg",oga:"audio/ogg",opus:"audio/ogg",flac:"audio/flac",weba:"audio/webm",mp4:"video/mp4",m4v:"video/mp4",mov:"video/quicktime",webm:"video/webm",ogv:"video/ogg"};
+const UPLOAD_MIN_MS=120000;
 const MSG_NEEDS_LOGIN="É necessário entrar na sua conta para enviar arquivos. Entre novamente (Perfil) e tente de novo.";
+function withTimeout(promise,ms){
+  return Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error("timeout")),ms))]);
+}
+const MSG_SESSION_SLOW="Não consegui confirmar sua conta agora (conexão lenta ou o app aberto em outra aba). Feche as outras abas/janelas do Flores Music e tente de novo.";
+let lastSessionIssue=null;
 /* Confirma que existe uma sessão válida do Supabase neste mesmo cliente (db).
-   strict=true também confirma no servidor que o token ainda vale. */
+   strict=true também pergunta ao servidor se o token ainda vale (sem travar se a rede estiver lenta). */
 async function getValidSession(strict){
-  if(!db)return null;
+  lastSessionIssue=null;
+  if(!db){lastSessionIssue="nosession";return null;}
   try{
-    let {data,error}=await db.auth.getSession();
+    const {data,error}=await withTimeout(db.auth.getSession(),8000);
     let session=data&&data.session;
-    if(error||!session)return null;
+    if(error||!session){lastSessionIssue="nosession";return null;}
     if(session.expires_at&&session.expires_at*1000<Date.now()+30000){
-      const r=await db.auth.refreshSession();
+      const r=await withTimeout(db.auth.refreshSession(),10000);
       session=r.error?null:(r.data&&r.data.session);
-      if(!session)return null;
+      if(!session){lastSessionIssue="nosession";return null;}
     }
     if(strict){
-      const u=await db.auth.getUser();
-      if(u.error||!(u.data&&u.data.user))return null;
+      try{
+        const u=await withTimeout(db.auth.getUser(),6000);
+        if(u.error&&/jwt|token|session|not authenticated/i.test(String(u.error.message||""))){lastSessionIssue="nosession";return null;}
+      }catch(e){/* rede lenta: segue com a sessão local; o servidor ainda confere no cadastro */}
     }
     return session;
-  }catch(e){return null;}
+  }catch(e){lastSessionIssue="timeout";return null;}
+}
+function sessionFailed(){
+  if(lastSessionIssue==="timeout")return MSG_SESSION_SLOW;
+  currentUser=null;currentAdmin=null;return MSG_NEEDS_LOGIN;
 }
 function isRlsError(err){
   const m=String((err&&err.message)||"").toLowerCase();
@@ -180,8 +193,7 @@ async function uploadSelectedFiles(){
   status.textContent="Verificando sua sessão…";
   const firstSession=await getValidSession(true);
   if(!firstSession){
-    currentUser=null;currentAdmin=null;
-    status.textContent=MSG_NEEDS_LOGIN;
+    status.textContent=sessionFailed();
     button.disabled=false;button.textContent="Enviar para a biblioteca";
     return;
   }
@@ -196,22 +208,39 @@ async function uploadSelectedFiles(){
       if(!isAudio&&!isVideo){errors.push(`${file.name}: formato não reconhecido.`);continue;}
       if(file.size===0){errors.push(`${file.name}: arquivo vazio.`);continue;}
       if(file.size>250*1024*1024){errors.push(`${file.name}: maior que 250 MB.`);continue;}
-      status.textContent=`Enviando ${sent+1} de ${files.length}: ${file.name}`;
+      status.textContent=`Enviando ${sent+1} de ${files.length}: ${file.name} (${(file.size/1048576).toFixed(1)} MB). Arquivos grandes demoram, aguarde…`;
       const safeName=file.name.normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9._-]/g,"_");
       const path=`${isAudio?"musicas":"videos"}/${Date.now()}-${crypto.randomUUID()}-${safeName}`;
       // Sessão válida antes de enviar o arquivo (evita arquivo órfão no Storage)
-      if(!await getValidSession(false)){currentUser=null;currentAdmin=null;errors.push(`${file.name}: ${MSG_NEEDS_LOGIN}`);break;}
-      const {error:storageError}=await db.storage.from(BUCKET).upload(path,file,{contentType:mime||"application/octet-stream",upsert:false});
-      if(storageError){errors.push(`${file.name}: falha no envio do arquivo (Storage) — ${storageError.message}`);continue;}
+      if(!await getValidSession(false)){errors.push(`${file.name}: ${sessionFailed()}`);break;}
+      // Envio ao Storage com contador de segundos e limite de tempo (nunca fica "enviando" para sempre)
+      const mb=file.size/1048576, t0=Date.now();
+      const limitMs=Math.min(20*60*1000,Math.max(UPLOAD_MIN_MS,mb*8000));
+      const tick=setInterval(()=>{status.textContent=`Enviando ${sent+1} de ${files.length}: ${file.name} (${mb.toFixed(1)} MB) — ${Math.round((Date.now()-t0)/1000)} s…`;},1000);
+      let storageError=null,timedOut=false;
+      try{
+        const r=await withTimeout(db.storage.from(BUCKET).upload(path,file,{contentType:mime||"application/octet-stream",upsert:false}),limitMs);
+        storageError=r.error;
+      }catch(e){
+        timedOut=String(e&&e.message)==="timeout";
+        storageError={message:timedOut?`o envio passou de ${Math.round(limitMs/1000)} s sem terminar (internet lenta ou arquivo grande demais)`:String((e&&e.message)||e)};
+      }finally{clearInterval(tick);}
+      if(storageError){
+        if(timedOut){try{await db.storage.from(BUCKET).remove([path]);}catch(_){}}
+        errors.push(`${file.name}: falha no envio do arquivo (Storage) — ${storageError.message}`);
+        if(timedOut)break;
+        continue;
+      }
       const title=file.name.replace(/\.[^.]+$/,"");
       // Sessão de novo, logo antes de cadastrar na tabela "media"
       if(!await getValidSession(false)){
-        currentUser=null;currentAdmin=null;
+        const sessMsg=sessionFailed();
         const {data:rm0,error:rmErr0}=await db.storage.from(BUCKET).remove([path]);
         const ok0=!rmErr0&&rm0&&rm0.length>0;
-        errors.push(`${file.name}: a sessão expirou antes do cadastro. ${MSG_NEEDS_LOGIN}`+(ok0?" O arquivo enviado foi removido do Storage.":` Não foi possível remover do Storage o arquivo: ${path}`));
+        errors.push(`${file.name}: ${sessMsg}`+(ok0?" O arquivo enviado foi removido do Storage.":` Não foi possível remover do Storage o arquivo: ${path}`));
         break;
       }
+      status.textContent=`Cadastrando "${title}" na biblioteca…`;
       const {error:dbError}=await db.from(TABLE).insert({title,type:isAudio?"audio":"video",storage_path:path});
       if(dbError){
         // Falha no cadastro: remove o arquivo enviado para não deixar órfão no Storage
@@ -224,7 +253,7 @@ async function uploadSelectedFiles(){
       }
       sent++;
     }
-    await loadLibrary();
+    try{await withTimeout(loadLibrary(),20000);}catch(e){}
     status.textContent=`Concluído: ${sent} de ${files.length} arquivo(s) enviado(s).`+(errors.length?"\n\nProblemas:\n"+errors.join("\n"):"");
     if(sent===files.length)input.value="";
   }catch(e){status.textContent="Erro durante o envio: "+(e.message||e);}
