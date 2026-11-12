@@ -1,5 +1,5 @@
 const CACHE = 'floresmusic-shell-v1'; // aumente (v2, v3...) a cada atualização
-const SHELL = ['/', '/index.html'];
+const SHELL = ['/', '/index.html', '/manifest.json', '/icon-192.png', '/icon-512.png'];
 const CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
 
 self.addEventListener('install', e => {
