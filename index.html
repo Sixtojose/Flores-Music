@@ -4,6 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#101114">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/png" href="/icon-192.png">
+  <link rel="apple-touch-icon" href="/icon-192.png">
   <title>Flores Music</title>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -35,26 +38,36 @@
 
     .main-menu{display:none!important}.bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;padding:7px 4px calc(7px + env(safe-area-inset-bottom));background:#080d1af5;border-top:1px solid #34415f;backdrop-filter:blur(18px)}
     .bottom-nav button{min-width:0;padding:8px 3px;border:0;border-radius:8px;background:transparent;color:#dbe4f5;font-size:10px;line-height:1.2;white-space:normal;overflow-wrap:anywhere}
-    .bottom-nav button.active{background:#28345a;color:#fff}.player{bottom:62px;padding:8px 12px}.player-inner{gap:8px}.player audio{max-width:52%;height:34px}
+    .bottom-nav button.active{background:#28345a;color:#fff}.bottom-nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}.bottom-nav .nav-symbol{font-size:23px;line-height:1.1}.bottom-nav button:first-child .nav-symbol{font-size:30px}.playlist-area{margin:18px 0 22px}.playlist-heading{font-size:19px;margin:0 0 12px}.playlist-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.playlist-card{display:flex;align-items:center;gap:10px;min-width:0;min-height:76px;padding:0;background:#292929;border:0;border-radius:8px;text-align:left;overflow:hidden}.playlist-card.active{outline:2px solid #22c55e;background:#333}.playlist-cover{width:76px;height:76px;flex:0 0 76px;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;overflow:hidden;background:#343434}.playlist-cover img{width:100%;height:100%;object-fit:cover;min-width:0;min-height:0}.playlist-cover .cover-fallback{grid-column:1/-1;grid-row:1/-1;display:grid;place-items:center;font-size:28px;color:#cbd5e1;background:linear-gradient(135deg,#303030,#555)}.playlist-name{font-size:13px;font-weight:750;line-height:1.25;padding-right:8px;overflow-wrap:anywhere}.player{bottom:62px;padding:8px 12px}.player-inner{gap:8px}.player audio{max-width:52%;height:34px}
     .library-list{display:flex;flex-direction:column;gap:7px}.track-row{display:flex;align-items:center;gap:9px;padding:10px;background:#141d30;border:1px solid #293752;border-radius:11px;min-width:0}.track-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.track-row button{padding:7px 9px;font-size:12px}.track-row.selected{border-color:#a78bfa;background:#292044;box-shadow:0 0 0 1px #a78bfa55}.track-row{user-select:none;-webkit-user-select:none;touch-action:pan-y}.selection-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px;margin:0 0 12px;background:#171f32;border:1px solid #8b5cf6;border-radius:12px}.selection-toolbar[hidden]{display:none}.selection-toolbar strong{flex:1}.selection-toolbar button{padding:8px 10px;font-size:12px}.selection-hint{color:#9ba8c4;font-size:12px;margin:0 0 10px}
     .section-admin{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.section-admin input{min-width:120px}.section-admin button{padding:9px 11px;font-size:12px}.section-select-row{display:flex;align-items:center;gap:10px;padding:11px;margin:7px 0;background:#141d30;border:1px solid #293752;border-radius:11px;cursor:pointer}.section-select-row.selected{border-color:#a78bfa;background:#292044}.section-select-row input{flex:0 0 auto;min-width:0;width:18px;height:18px;margin:0;accent-color:#a78bfa}.section-select-row span{flex:1}.admin-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.empty-trash{background:#512432;border-color:#a33b58;color:#fff}.trash-toolbar{display:flex;justify-content:flex-end;margin:0 0 12px}
-    @media(max-width:600px){main{padding-bottom:180px}.player{bottom:62px}.player-inner{flex-wrap:nowrap}.player audio{width:48%;max-width:48%}.now{flex:1;min-width:0}.now strong{font-size:12px}.now small{font-size:10px}}
+    @media(max-width:600px){main{padding-bottom:180px}.playlist-card{min-height:72px}.playlist-cover{width:72px;height:72px;flex-basis:72px}.playlist-name{font-size:12px}.bottom-nav button{font-size:10px}.player{bottom:62px}.player-inner{flex-wrap:nowrap}.player audio{width:48%;max-width:48%}.now{flex:1;min-width:0}.now strong{font-size:12px}.now small{font-size:10px}}
+    /* Esvaziar lixeira: só aparece na seção Lixeira */
+    .trash-toolbar[hidden]{display:none}
+    /* Vídeos: grade com 3 cartões por linha (miniatura em cima, título embaixo) */
+    .video-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+    .video-card.track-row{flex-direction:column;align-items:stretch;gap:6px;padding:6px;border-radius:12px;min-width:0}
+    .video-thumb{position:relative;width:100%;aspect-ratio:3/4;border-radius:9px;overflow:hidden;background:linear-gradient(135deg,#24204b,#103c50);display:grid;place-items:center;color:#6ee7ff;font-size:clamp(22px,8vw,40px);pointer-events:none}
+    .video-thumb img,.video-thumb video{position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none;margin:0;border-radius:0;object-fit:cover;display:block}
+    .video-card .video-title{flex:none;white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;text-overflow:clip;font-size:11px;line-height:1.25;min-height:2.5em;word-break:break-word}
+    .video-card-actions{display:flex;gap:4px}.video-card-actions button{flex:1;padding:6px 0;font-size:12px}
+    @media(min-width:700px){.video-grid{gap:12px}.video-card .video-title{font-size:13px}}
   </style>
 </head>
 <body>
 <header><span class="logo">♫</span><h1>FLORES MUSIC</h1><small id="connection">Verificando conexão…</small></header>
 <nav id="mainMenu" class="bottom-nav" aria-label="Navegação principal">
-  <button type="button" data-view="history">Minhas músicas reproduzidas</button>
-  <button type="button" data-view="explore">Explorar</button>
-  <button type="button" data-view="downloads">Downloads em andamento</button>
-  <button type="button" data-view="profile">Meu perfil</button>
+  <button type="button" data-view="home" class="active" aria-label="Início" title="Início"><span class="nav-symbol">⌂</span></button>
+  <button type="button" data-view="explore"><span class="nav-symbol">🔍</span><span>Buscar</span></button>
+  <button type="button" data-view="library"><span class="nav-symbol">📚</span><span>Biblioteca</span></button>
+  <button type="button" data-view="profile"><span class="nav-symbol">👤</span><span>Perfil</span></button>
 </nav>
 <section id="accountPanel" class="account-panel" hidden>
   <div class="panel-head"><h3 id="panelTitle">Meu perfil</h3><button id="closePanel" type="button">Fechar ✕</button></div>
   <div id="panelBody"></div>
 </section>
 <main>
-  <section class="hero"><h2>Sua música. Seus vídeos.</h2><p>Uma biblioteca para ouvir e assistir online ou offline.</p></section>
+  <section id="searchView" hidden>
   <div class="tools">
     <input id="search" type="search" placeholder="Pesquisar músicas e vídeos…">
     <button id="sync" class="primary" type="button">Sincronizar</button>
@@ -66,17 +79,20 @@
     <button id="uploadBtn" class="primary" type="button">Enviar para a biblioteca</button>
     <div id="uploadStatus" role="status" aria-live="polite"></div>
   </section>
+  </section>
   <div class="tabs">
-    <button class="active" data-tab="all">Tudo</button>
-    <button data-tab="audio">Músicas</button>
+    <button class="active" data-tab="audio">Música</button>
     <button data-tab="video">Vídeos</button>
-    <button data-tab="saved">Baixados</button>
+    <button data-tab="saved">Baixando</button>
     <button data-tab="trash">🗑️ Lixeira</button>
   </div>
-  <div id="customSections" class="tabs" aria-label="Seções criadas pelo administrador"></div>
+  <section class="playlist-area" aria-label="Playlists">
+    <h3 class="playlist-heading">Suas playlists</h3>
+    <div id="customSections" class="playlist-grid"></div>
+  </section>
   <div id="status">Configure o Supabase para carregar sua biblioteca online.</div>
   <div id="trashToolbar" class="trash-toolbar" hidden><button type="button" class="empty-trash" id="emptyTrashBtn">Esvaziar lixeira</button></div>
-  <div id="selectionToolbar" class="selection-toolbar" hidden><strong id="selectionCount">0 selecionadas</strong><button type="button" id="cancelSelectionBtn">Cancelar</button><button type="button" id="restoreSelectedBtn" hidden>Restaurar</button><button type="button" id="moveSelectedBtn">Mover para lixeira</button><button type="button" id="deleteSelectedBtn" class="empty-trash" hidden>Excluir selecionadas</button></div>
+  <div id="selectionToolbar" class="selection-toolbar" hidden><strong id="selectionCount">0 selecionadas</strong><select id="sectionTargetSelect" aria-label="Escolher seção" hidden style="max-width:180px;min-width:130px;padding:8px;background:#101729;color:white;border:1px solid #34415f;border-radius:9px"><option value="">Escolher seção</option></select><button type="button" id="addQueueBtn">Adicionar à fila</button><button type="button" id="assignSectionBtn" hidden>Adicionar à playlist</button><button type="button" id="cancelSelectionBtn">Cancelar</button><button type="button" id="restoreSelectedBtn" hidden>Restaurar</button><button type="button" id="moveSelectedBtn">Mover para lixeira</button><button type="button" id="deleteSelectedBtn" class="empty-trash" hidden>Excluir selecionadas</button></div>
   <p id="selectionHint" class="selection-hint" hidden>Toque nas outras músicas para selecionar. Toque em Cancelar para sair.</p>
   <div id="library" class="grid"></div>
   <video id="videoPlayer" controls playsinline hidden></video>
@@ -108,8 +124,10 @@ const db = (window.supabase && SUPABASE_URL.startsWith("https://") &&
 
 const $ = id => document.getElementById(id);
 const audio = $("audioPlayer"), video = $("videoPlayer");
-let records = [], tab = "all";
+let records = [], tab = "audio";
 let currentUser = null, currentAdmin = null, downloadTasks = [];
+let sectionRows = [], activeSectionId = null, sectionMediaIds = new Set();
+const selectedSections = new Set();
 const DB_NAME = "flores-music-offline";
 function openLocalDB(){return new Promise((resolve,reject)=>{
   const req=indexedDB.open(DB_NAME,1);
@@ -127,29 +145,81 @@ async function saveOffline(item){
     render();$("status").textContent="Arquivo salvo para uso offline.";
   }catch(e){alert("Falha ao baixar: "+e.message);}
 }
+const MEDIA_MIME={m4a:"audio/mp4",mp3:"audio/mpeg",aac:"audio/aac",wav:"audio/wav",ogg:"audio/ogg",oga:"audio/ogg",opus:"audio/ogg",flac:"audio/flac",weba:"audio/webm",mp4:"video/mp4",m4v:"video/mp4",mov:"video/quicktime",webm:"video/webm",ogv:"video/ogg"};
+const MSG_NEEDS_LOGIN="É necessário entrar na sua conta para enviar arquivos. Entre novamente (Perfil) e tente de novo.";
+/* Confirma que existe uma sessão válida do Supabase neste mesmo cliente (db).
+   strict=true também confirma no servidor que o token ainda vale. */
+async function getValidSession(strict){
+  if(!db)return null;
+  try{
+    let {data,error}=await db.auth.getSession();
+    let session=data&&data.session;
+    if(error||!session)return null;
+    if(session.expires_at&&session.expires_at*1000<Date.now()+30000){
+      const r=await db.auth.refreshSession();
+      session=r.error?null:(r.data&&r.data.session);
+      if(!session)return null;
+    }
+    if(strict){
+      const u=await db.auth.getUser();
+      if(u.error||!(u.data&&u.data.user))return null;
+    }
+    return session;
+  }catch(e){return null;}
+}
+function isRlsError(err){
+  const m=String((err&&err.message)||"").toLowerCase();
+  return !!err&&(err.code==="42501"||m.includes("row-level security")||m.includes("violates row-level"));
+}
 async function uploadSelectedFiles(){
   const input=$("mediaFiles"), button=$("uploadBtn"), status=$("uploadStatus");
   const files=Array.from(input.files||[]);
   if(!db){status.textContent="Supabase ainda não está configurado neste HTML. Preencha a URL e a chave pública.";return;}
   if(!files.length){status.textContent="Escolha pelo menos um arquivo primeiro.";return;}
-  button.disabled=true;button.textContent="Enviando…";
+  button.disabled=true;button.textContent="Verificando conta…";
+  status.textContent="Verificando sua sessão…";
+  const firstSession=await getValidSession(true);
+  if(!firstSession){
+    currentUser=null;currentAdmin=null;
+    status.textContent=MSG_NEEDS_LOGIN;
+    button.disabled=false;button.textContent="Enviar para a biblioteca";
+    return;
+  }
+  button.textContent="Enviando…";
   let sent=0;const errors=[];
   try{
     for(const file of files){
-      const isAudio=file.type.startsWith("audio/");
-      const isVideo=file.type.startsWith("video/");
+      const ext=((file.name.match(/\.([a-z0-9]+)$/i)||[])[1]||"").toLowerCase();
+      const mime=file.type||MEDIA_MIME[ext]||"";
+      const isAudio=mime.startsWith("audio/");
+      const isVideo=mime.startsWith("video/");
       if(!isAudio&&!isVideo){errors.push(`${file.name}: formato não reconhecido.`);continue;}
       if(file.size===0){errors.push(`${file.name}: arquivo vazio.`);continue;}
       if(file.size>250*1024*1024){errors.push(`${file.name}: maior que 250 MB.`);continue;}
       status.textContent=`Enviando ${sent+1} de ${files.length}: ${file.name}`;
       const safeName=file.name.normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9._-]/g,"_");
       const path=`${isAudio?"musicas":"videos"}/${Date.now()}-${crypto.randomUUID()}-${safeName}`;
-      const {error:storageError}=await db.storage.from(BUCKET).upload(path,file,{contentType:file.type||"application/octet-stream",upsert:false});
-      if(storageError){errors.push(`${file.name}: falha no Storage — ${storageError.message}`);continue;}
+      // Sessão válida antes de enviar o arquivo (evita arquivo órfão no Storage)
+      if(!await getValidSession(false)){currentUser=null;currentAdmin=null;errors.push(`${file.name}: ${MSG_NEEDS_LOGIN}`);break;}
+      const {error:storageError}=await db.storage.from(BUCKET).upload(path,file,{contentType:mime||"application/octet-stream",upsert:false});
+      if(storageError){errors.push(`${file.name}: falha no envio do arquivo (Storage) — ${storageError.message}`);continue;}
       const title=file.name.replace(/\.[^.]+$/,"");
+      // Sessão de novo, logo antes de cadastrar na tabela "media"
+      if(!await getValidSession(false)){
+        currentUser=null;currentAdmin=null;
+        const {data:rm0,error:rmErr0}=await db.storage.from(BUCKET).remove([path]);
+        const ok0=!rmErr0&&rm0&&rm0.length>0;
+        errors.push(`${file.name}: a sessão expirou antes do cadastro. ${MSG_NEEDS_LOGIN}`+(ok0?" O arquivo enviado foi removido do Storage.":` Não foi possível remover do Storage o arquivo: ${path}`));
+        break;
+      }
       const {error:dbError}=await db.from(TABLE).insert({title,type:isAudio?"audio":"video",storage_path:path});
       if(dbError){
-        errors.push(`${file.name}: arquivo chegou ao Storage, mas não foi registrado na tabela — ${dbError.message}`);
+        // Falha no cadastro: remove o arquivo enviado para não deixar órfão no Storage
+        const {data:rm,error:rmErr}=await db.storage.from(BUCKET).remove([path]);
+        const cleaned=!rmErr&&rm&&rm.length>0;
+        const rls=isRlsError(dbError);
+        errors.push(`${file.name}: falha no cadastro da tabela — `+(rls?"sem permissão para cadastrar com esta sessão. Entre novamente com uma conta autorizada. ":"")+`(${dbError.message}) `+(cleaned?"O arquivo enviado foi removido do Storage.":`Não foi possível remover do Storage o arquivo: ${path}`));
+        if(rls)break; // mesma sessão falharia nos próximos; interrompe para não criar mais órfãos
         continue;
       }
       sent++;
@@ -170,11 +240,12 @@ async function loadLibrary(){
     const activeCount=records.filter(x=>!x.deleted_at).length;
     const trashCount=records.filter(x=>!!x.deleted_at).length;
     $("status").textContent=`${activeCount} arquivo(s) na biblioteca · ${trashCount} na lixeira.`;
-    render();
+    renderSections();render();
   }catch(e){$("status").textContent="Erro ao carregar: "+e.message+" — exibindo arquivos já baixados.";render();}
 }
 function escapeHTML(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 let selectedTracks=new Set();
+let playbackQueue=[];
 let selectionMode=false;
 let longPressTimer=null;
 let longPressTriggered=false;
@@ -187,6 +258,10 @@ function updateSelectionToolbar(){
   hint.hidden=!selectionMode;
   $("selectionCount").textContent=`${count} selecionada(s)`;
   const inTrash=tab==="trash";
+  const canAssign=!!currentAdmin && !inTrash && tab!=="saved" && sectionRows.length>0;
+  $("sectionTargetSelect").hidden=!selectionMode||!canAssign;
+  $("assignSectionBtn").hidden=!selectionMode||!canAssign;
+  $("addQueueBtn").hidden=!selectionMode||inTrash;
   $("restoreSelectedBtn").hidden=!inTrash;
   $("moveSelectedBtn").hidden=inTrash;
   $("deleteSelectedBtn").hidden=!inTrash;
@@ -204,6 +279,14 @@ function toggleTrackSelection(id){
 function cancelTrackSelection(){
   selectedTracks.clear();selectionMode=false;updateSelectionToolbar();
   document.querySelectorAll(".track-row.selected").forEach(row=>row.classList.remove("selected"));
+}
+async function addSelectedToQueue(){
+  const ids=[...selectedTracks];
+  const chosen=records.filter(x=>ids.includes(String(x.id))&&!x.deleted_at&&x.type==="audio");
+  if(!chosen.length){alert("Selecione pelo menos uma música para adicionar à fila.");return;}
+  playbackQueue.push(...chosen);
+  alert(`${chosen.length} música(s) adicionada(s) à fila.`);
+  cancelTrackSelection();
 }
 async function performSelectedAction(action){
   const ids=[...selectedTracks];
@@ -235,6 +318,7 @@ async function render(){
   else if(tab==="all")list=records.filter(x=>!x.deleted_at);
   else if(tab==="audio")list=records.filter(x=>x.type==="audio"&&!x.deleted_at);
   else if(tab==="video")list=records.filter(x=>x.type==="video"&&!x.deleted_at);
+  if(activeSectionId && tab==="all")list=list.filter(x=>sectionMediaIds.has(String(x.id)));
   const q=$("search").value.toLowerCase().trim();
   const trashToolbar=$("trashToolbar");
   if(trashToolbar){trashToolbar.hidden=tab!=="trash";const emptyBtn=$("emptyTrashBtn");if(emptyBtn)emptyBtn.onclick=emptyTrash;}
@@ -243,12 +327,19 @@ async function render(){
   selectedTracks=new Set([...selectedTracks].filter(id=>visibleIds.has(id)));
   if(!selectedTracks.size)selectionMode=false;
   updateSelectionToolbar();
-  $("library").className="library-list";
+  const sectionSelect=$("sectionTargetSelect");
+  if(sectionSelect){const previous=sectionSelect.value;sectionSelect.innerHTML="<option value=\"\">Escolher seção</option>"+sectionRows.map(x=>`<option value=\"${escapeHTML(x.id)}\">${escapeHTML(x.name)}</option>`).join("");if(sectionRows.some(x=>x.id===previous))sectionSelect.value=previous;}
+  const videoGrid=tab==="video";
+  $("library").className=videoGrid?"video-grid":"library-list";
   $("library").innerHTML=list.length?list.map(x=>{
     const isSaved=offline.some(y=>y.id===x.id);
     const inTrash=!!x.deleted_at;
     const id=String(x.id).replace(/'/g,"\\'");
     const selected=selectedTracks.has(String(x.id));
+    if(videoGrid&&!inTrash){
+      const thumb=x.cover_url?`<img src="${escapeHTML(x.cover_url)}" alt="">`:(navigator.onLine&&x.url?`<video src="${escapeHTML(x.url)}#t=0.5" preload="metadata" muted playsinline tabindex="-1"></video>`:"");
+      return `<div class="track-row video-card ${selected?"selected":""}" data-track-id="${escapeHTML(x.id)}" role="button" tabindex="0" aria-selected="${selected}"><div class="video-thumb"><span aria-hidden="true">▶</span>${thumb}</div><span class="track-title video-title" title="${escapeHTML(x.title)}">${escapeHTML(x.title)}</span><div class="video-card-actions"><button data-action="play" data-id="${escapeHTML(x.id)}">▶</button>${!isSaved&&x.url?`<button data-action="download" data-id="${escapeHTML(x.id)}">↓</button>`:""}</div></div>`;
+    }
     return `<div class="track-row ${selected?"selected":""}" data-track-id="${escapeHTML(x.id)}" role="button" tabindex="0" aria-selected="${selected}">${x.cover_url?`<img src="${escapeHTML(x.cover_url)}" alt="" style="width:42px;height:42px;object-fit:cover;border-radius:7px;pointer-events:none">`:`<span aria-hidden="true">${x.type==="video"?"▶":"♫"}</span>`}<span class="track-title" title="${escapeHTML(x.title)}">${escapeHTML(x.title)}</span>${inTrash?`<button class="restore" data-action="restore" data-id="${escapeHTML(x.id)}">Restaurar</button>`:`<button data-action="play" data-id="${escapeHTML(x.id)}">▶</button>${!isSaved&&x.url?`<button data-action="download" data-id="${escapeHTML(x.id)}">↓</button>`:""}`}</div>`;
   }).join(""):`<div class="empty">${tab==="trash"?"A lixeira está vazia.":"Nenhum arquivo nesta seção ainda."}</div>`;
 }
@@ -311,11 +402,12 @@ async function playItem(id){
   }
 }
 function downloadItem(id){const item=records.find(x=>String(x.id)===String(id));if(item)saveOffline(item);}
-audio.addEventListener("ended",()=>{const queue=records.filter(x=>x.type==="audio"&&!x.deleted_at);const current=queue.findIndex(x=>x.url===audio.src||x.title===$("nowTitle").textContent);if(queue.length){const next=queue[(current+1+queue.length)%queue.length];playItem(next.id);}});
+audio.addEventListener("ended",()=>{if(playbackQueue.length){const next=playbackQueue.shift();playItem(next.id);return;}const queue=records.filter(x=>x.type==="audio"&&!x.deleted_at);const current=queue.findIndex(x=>x.url===audio.src||x.title===$("nowTitle").textContent);if(queue.length){const next=queue[(current+1+queue.length)%queue.length];playItem(next.id);}});
 renderSections();
+if($("searchView"))$("searchView").hidden=true;
 document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{
   document.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("active"));
-  b.classList.add("active");tab=b.dataset.tab;cancelTrackSelection();render();
+  b.classList.add("active");tab=b.dataset.tab;activeSectionId=null;sectionMediaIds.clear();renderSections();cancelTrackSelection();render();
 }));
 $("search").addEventListener("input",render);$("sync").addEventListener("click",loadLibrary);
 $("uploadBtn").addEventListener("click",uploadSelectedFiles);
@@ -323,6 +415,8 @@ $("cancelSelectionBtn").addEventListener("click",cancelTrackSelection);
 $("moveSelectedBtn").addEventListener("click",()=>performSelectedAction("move"));
 $("restoreSelectedBtn").addEventListener("click",()=>performSelectedAction("restore"));
 $("deleteSelectedBtn").addEventListener("click",()=>performSelectedAction("delete"));
+$("assignSectionBtn").addEventListener("click",assignSelectedToSection);
+$("addQueueBtn").addEventListener("click",addSelectedToQueue);
 
 const libraryEl=$("library");
 libraryEl.addEventListener("pointerdown",e=>{
@@ -381,7 +475,7 @@ function openPanel(view){
   }else if(view==="admin"){
     if(currentAdmin){
       body.innerHTML=`<p>Conectado como <strong>${escapeHTML(currentAdmin.username)}</strong> · ${escapeHTML(currentAdmin.role)}</p><h4>Gerenciar seções da biblioteca</h4><div class="section-admin"><input id="newSectionName" maxlength="35" placeholder="Nome da nova seção"><button class="primary" id="addSectionBtn" type="button">Criar seção</button></div><div id="adminSectionsList"></div><h4>Gerenciar músicas</h4><p class="muted">Para selecionar músicas, mantenha uma pressionada por um instante. Depois toque nas outras para selecionar várias.</p><button type="button" id="adminManageMusicBtn">Abrir biblioteca para gerenciar músicas</button><div class="admin-actions"><button type="button" class="danger" id="deleteSelectedSectionsBtn">Apagar selecionadas</button></div><div id="adminUsersList">Carregando administradores…</div><p class="muted">A criação e remoção de contas administrativas precisa de uma função segura no servidor; não será feita diretamente pelo HTML nem expondo chave secreta.</p><button type="button" id="adminSignOut">Sair</button>`;
-      loadAdminUsers();renderAdminSections();$("addSectionBtn").onclick=addSection;$("deleteSelectedSectionsBtn").onclick=deleteSelectedSections;$("adminSignOut").onclick=signOut;$("adminManageMusicBtn").onclick=()=>{ $("accountPanel").hidden=true; tab="all"; document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab==="all")); cancelTrackSelection(); render(); window.scrollTo({top:document.querySelector(".tabs").offsetTop,behavior:"smooth"}); };
+      loadAdminUsers();loadSections();renderAdminSections();$("addSectionBtn").onclick=addSection;$("deleteSelectedSectionsBtn").onclick=deleteSelectedSections;$("adminSignOut").onclick=signOut;$("adminManageMusicBtn").onclick=()=>{ $("accountPanel").hidden=true; tab="all"; document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab==="all")); cancelTrackSelection(); render(); window.scrollTo({top:document.querySelector(".tabs").offsetTop,behavior:"smooth"}); };
     }else{
       body.innerHTML='<p>Área restrita. Entre com o e-mail e a senha da conta administradora.</p><label for="adminEmail">E-mail</label><input id="adminEmail" type="email" autocomplete="username" placeholder="E-mail do administrador"><label for="adminPassword">Senha</label><input id="adminPassword" type="password" autocomplete="current-password" placeholder="Senha"><button class="primary wide" id="adminLogin" type="button">Entrar no painel</button><p id="adminMsg" class="muted"></p>';
       $("adminLogin").onclick=()=>signIn($("adminEmail").value,$("adminPassword").value,"adminMsg");
@@ -400,7 +494,7 @@ async function signIn(email,password,msgId){
   const {data,error}=await db.auth.signInWithPassword({email,password});
   if(error){msg.textContent="Não foi possível entrar: confira os dados da conta.";return;}
   currentUser=data.user;const {data:admin,error:adminError}=await db.from("admin_users").select("user_id,username,role").eq("user_id",currentUser.id).maybeSingle();
-  currentAdmin=!adminError?admin:null;
+  currentAdmin=!adminError?admin:null;await loadSections();
   if(msgId==="adminMsg"&&!currentAdmin){await db.auth.signOut();currentUser=null;msg.textContent="Esta conta não está cadastrada como administradora.";return;}
   openPanel(msgId==="adminMsg"?"admin":"profile");
 }
@@ -411,26 +505,72 @@ async function loadAdminUsers(){
   if(error){target.textContent="Não foi possível carregar os administradores: "+error.message;return;}
   target.innerHTML="<h4>Administradores cadastrados</h4>"+(data||[]).map(x=>`<div class="admin-row"><strong>${escapeHTML(x.username)}</strong><p class="muted">${escapeHTML(x.role)}</p></div>`).join("");
 }
-const sectionsKey="flores-music-admin-sections-v1";
-function getSections(){try{return JSON.parse(localStorage.getItem(sectionsKey)||"[]")}catch{return []}}
-function saveSections(a){localStorage.setItem(sectionsKey,JSON.stringify(a));renderSections();renderAdminSections()}
-function renderSections(){const el=$("customSections");if(!el)return;const arr=getSections();el.innerHTML=arr.map((x,i)=>`<button class="section-chip" type="button" onclick="filterSection(${i})">${escapeHTML(x)}</button>`).join("")}
-function filterSection(i){const name=getSections()[i];if(!name)return;alert("A seção ‘"+name+"’ foi criada no painel Admin. Para vincular músicas a ela em todos os aparelhos, é necessário salvar essa relação no banco Supabase.")}
-const selectedSections=new Set();
+async function loadSections(){
+  if(!db)return;
+  const {data,error}=await db.from("music_sections").select("id,name,created_at").order("created_at",{ascending:true});
+  if(error){console.error("Falha ao carregar seções:",error.message);return;}
+  sectionRows=data||[];
+  if(activeSectionId&&!sectionRows.some(x=>x.id===activeSectionId)){activeSectionId=null;sectionMediaIds.clear();}
+  renderSections();renderAdminSections();updateSelectionToolbar();
+}
+async function renderSections(){
+  const el=$("customSections");if(!el)return;
+  if(!sectionRows.length){el.innerHTML='<div class="empty" style="grid-column:1/-1;padding:16px 0">Suas playlists aparecerão aqui.</div>';return;}
+  const cards=await Promise.all(sectionRows.map(async section=>{
+    const {data}=await db.from("media_sections").select("media_id").eq("section_id",section.id);
+    const ids=(data||[]).map(x=>String(x.media_id));
+    const covers=records.filter(x=>ids.includes(String(x.id))&&!x.deleted_at&&x.cover_url).slice(0,4);
+    const coverHtml=covers.length?covers.map(x=>`<img src="${escapeHTML(x.cover_url)}" alt="">`).join(""):'<span class="cover-fallback">♫</span>';
+    return `<button class="playlist-card ${activeSectionId===section.id?"active":""}" type="button" onclick="filterSection('${section.id}')" aria-label="Abrir playlist ${escapeHTML(section.name)}"><span class="playlist-cover">${coverHtml}</span><span class="playlist-name">${escapeHTML(section.name)}</span></button>`;
+  }));
+  el.innerHTML=cards.join("");
+}
+async function filterSection(id){
+  if(activeSectionId===id){activeSectionId=null;sectionMediaIds.clear();}
+  else{
+    activeSectionId=id;
+    const {data,error}=await db.from("media_sections").select("media_id").eq("section_id",id);
+    if(error){alert("Não foi possível abrir esta seção: "+error.message);activeSectionId=null;sectionMediaIds.clear();return;}
+    sectionMediaIds=new Set((data||[]).map(x=>String(x.media_id)));
+  }
+  tab="all";document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",false));
+  renderSections();cancelTrackSelection();render();
+}
 function renderAdminSections(){
   const el=$("adminSectionsList");if(!el)return;
-  const arr=getSections();
-  el.innerHTML=arr.map((name,i)=>`<div class="section-select-row ${selectedSections.has(name)?"selected":""}" role="button" tabindex="0" onclick="toggleSectionSelection(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleSectionSelection(${i})}"><input type="checkbox" tabindex="-1" aria-label="Selecionar ${escapeHTML(name)}" ${selectedSections.has(name)?"checked":""} readonly><span>${escapeHTML(name)}</span></div>`).join("")||'<p class="muted">Nenhuma seção criada ainda.</p>';
+  el.innerHTML=sectionRows.map(x=>`<div class="section-select-row ${selectedSections.has(x.id)?"selected":""}" role="button" tabindex="0" onclick="toggleSectionSelection('${x.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleSectionSelection('${x.id}')}" ><input type="checkbox" tabindex="-1" aria-label="Selecionar ${escapeHTML(x.name)}" ${selectedSections.has(x.id)?"checked":""} readonly><span>${escapeHTML(x.name)}</span></div>`).join("")||'<p class="muted">Nenhuma seção criada ainda.</p>';
   const btn=$("deleteSelectedSectionsBtn");if(btn)btn.textContent=`Apagar selecionadas (${selectedSections.size})`;
 }
-function toggleSectionSelection(i){const name=getSections()[i];if(!name)return;if(selectedSections.has(name))selectedSections.delete(name);else selectedSections.add(name);renderAdminSections()}
-function deleteSelectedSections(){
+function toggleSectionSelection(id){if(selectedSections.has(id))selectedSections.delete(id);else selectedSections.add(id);renderAdminSections();}
+async function deleteSelectedSections(){
   if(!selectedSections.size){alert("Toque nas seções que deseja apagar primeiro.");return;}
-  const arr=getSections().filter(name=>!selectedSections.has(name));
-  saveSections(arr);selectedSections.clear();renderAdminSections();
+  if(!confirm(`Apagar ${selectedSections.size} seção(ões)? As músicas não serão apagadas.`))return;
+  const ids=[...selectedSections];
+  const {error}=await db.from("music_sections").delete().in("id",ids);
+  if(error){alert("Não foi possível apagar as seções: "+error.message);return;}
+  if(ids.includes(activeSectionId)){activeSectionId=null;sectionMediaIds.clear();}
+  selectedSections.clear();await loadSections();render();
 }
-function addSection(){const input=$("newSectionName"),name=(input?.value||"").trim();if(!name)return alert("Digite o nome da seção.");const arr=getSections();if(arr.some(x=>x.toLowerCase()===name.toLowerCase()))return alert("Essa seção já existe.");arr.push(name);saveSections(arr);input.value=""}
-function removeSection(i){toggleSectionSelection(i)}
+async function addSection(){
+  const input=$("newSectionName"),name=(input?.value||"").trim();
+  if(!name)return alert("Digite o nome da seção.");
+  if(!currentAdmin)return alert("Somente administradores podem criar seções.");
+  const {error}=await db.from("music_sections").insert({name});
+  if(error){alert(error.code==="23505"?"Essa seção já existe.":"Não foi possível criar a seção: "+error.message);return;}
+  input.value="";await loadSections();
+}
+async function assignSelectedToSection(){
+  const sectionId=$("sectionTargetSelect").value,ids=[...selectedTracks];
+  if(!currentAdmin){alert("Somente administradores podem organizar as músicas.");return;}
+  if(!sectionId){alert("Escolha uma seção primeiro.");return;}
+  if(!ids.length){alert("Selecione pelo menos uma música.");return;}
+  const rows=ids.map(media_id=>({media_id,section_id:sectionId}));
+  const {error}=await db.from("media_sections").upsert(rows,{onConflict:"media_id,section_id",ignoreDuplicates:true});
+  if(error){alert("Não foi possível vincular as músicas: "+error.message);return;}
+  alert(`${ids.length} música(s) adicionada(s) à seção.`);cancelTrackSelection();
+  if(activeSectionId===sectionId)await filterSection(sectionId);
+}
+
 async function emptyTrash(){
   const trashed=records.filter(x=>!!x.deleted_at);
   if(!trashed.length){alert("A lixeira já está vazia.");return;}
@@ -455,13 +595,14 @@ async function saveOffline(item){
   }catch(e){task.status=e.name==="AbortError"?"Cancelado":"Falha: "+e.message;if(e.name!=="AbortError")alert("Falha ao baixar: "+e.message);}
   finally{downloadTasks=downloadTasks.filter(x=>x!==task);}
 }
-document.addEventListener("click",e=>{const b=e.target.closest("[data-view]");if(b)openPanel(b.dataset.view)});
+document.addEventListener("click",e=>{const b=e.target.closest("[data-view]");if(!b)return;document.querySelectorAll("[data-view]").forEach(x=>x.classList.toggle("active",x===b));const searchView=$("searchView");if(searchView)searchView.hidden=b.dataset.view!=="explore";if(b.dataset.view==="home"){ $("accountPanel").hidden=true;activeSectionId=null;sectionMediaIds.clear();tab="audio";document.querySelectorAll("[data-tab]").forEach(x=>x.classList.toggle("active",x.dataset.tab==="audio"));renderSections();render();window.scrollTo({top:0,behavior:"smooth"});}else if(b.dataset.view==="library"){ $("accountPanel").hidden=true;document.querySelector(".playlist-area")?.scrollIntoView({behavior:"smooth",block:"start"});}else if(b.dataset.view==="explore"){ $("accountPanel").hidden=true;$("search").focus();window.scrollTo({top:0,behavior:"smooth"});}else openPanel(b.dataset.view);});
 
 $("closePanel").addEventListener("click",()=>$("accountPanel").hidden=true);
 function updateConnection(){$("connection").textContent=navigator.onLine?"Online":"Offline";}
 window.addEventListener("online",()=>{updateConnection();loadLibrary();});
 window.addEventListener("offline",updateConnection);
-updateConnection();refreshAuth();loadLibrary();
+updateConnection();refreshAuth().then(loadSections);loadLibrary();
+if("serviceWorker" in navigator){window.addEventListener("load",()=>navigator.serviceWorker.register("/sw.js").catch(()=>{}));}
 </script>
 </body>
 </html>
