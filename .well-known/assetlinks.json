@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "app.vercel.floresmusic.twa",
+    "sha256_cert_fingerprints": ["2C:18:83:D2:DB:1F:AF:0D:6D:47:44:1A:26:08:C0:41:FE:32:04:78:66:E9:24:4E:37:07:34:EE:69:7D:F1:B4"]
+  }
+}]
