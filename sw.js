@@ -1,54 +1,31 @@
-const CACHE = 'floresmusic-shell-v1'; // aumente (v2, v3...) a cada atualização
+const CACHE = 'mercado-flores-v1';
 const SHELL = ['/', '/index.html', '/manifest.json', '/icon-192.png', '/icon-512.png'];
-const CDN = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
 
 self.addEventListener('install', e => {
-  e.waitUntil(
-    caches.open(CACHE).then(async c => {
-      await c.addAll(SHELL);
-      // Biblioteca do Supabase também fica guardada, para o app abrir sem internet
-      try { await c.add(CDN); } catch (_) {}
-    })
-  );
-  self.skipWaiting();
+  e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', e => {
   e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
-    )
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
+// Network-first só para arquivos do próprio site; Firebase/Supabase/Google passam direto
 self.addEventListener('fetch', e => {
-  if (e.request.method !== 'GET') return;
-  const url = new URL(e.request.url);
-
-  // Script do Supabase: cache primeiro, depois rede
-  if (e.request.url === CDN) {
-    e.respondWith(
-      caches.match(e.request).then(hit => hit || fetch(e.request).then(res => {
-        const copy = res.clone();
-        caches.open(CACHE).then(c => c.put(e.request, copy));
-        return res;
-      }))
-    );
-    return;
-  }
-
-  // Resto de outros domínios (API e arquivos do Supabase) passa direto
+  const req = e.request;
+  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
   if (url.origin !== location.origin) return;
-
-  // Arquivos do próprio site: rede primeiro, cache se estiver offline
   e.respondWith(
-    fetch(e.request)
+    fetch(req)
       .then(res => {
         const copy = res.clone();
-        caches.open(CACHE).then(c => c.put(e.request, copy));
+        caches.open(CACHE).then(c => c.put(req, copy));
         return res;
       })
-      .catch(() => caches.match(e.request).then(r => r || caches.match('/index.html')))
+      .catch(() => caches.match(req).then(r => r || caches.match('/index.html')))
   );
 });
