@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101114">
+  <title>Flores Music</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root{color-scheme:dark;--bg:#080a12;--panel:#111625;--panel2:#171f32;--muted:#9ba8c4;--line:#26314a;--neon:#a78bfa;--cyan:#38d9ff;--green:#35d399}
+    *{box-sizing:border-box}html{min-height:100%;background:var(--bg)}body{margin:0;background:radial-gradient(ellipse at 15% 0%,#20204b 0,transparent 38%),radial-gradient(ellipse at 95% 18%,#102f45 0,transparent 32%),var(--bg);color:#f7f8ff;font:15px Inter,system-ui,-apple-system,Arial,sans-serif;min-height:100vh}
+    header{padding:18px max(18px,calc((100% - 1180px)/2));display:flex;align-items:center;gap:13px;border-bottom:1px solid #ffffff12;position:sticky;top:0;background:#090c16eF;backdrop-filter:blur(18px);z-index:5;box-shadow:0 8px 30px #0004}
+    .logo{width:42px;height:42px;display:grid;place-items:center;border-radius:14px;color:#fff;font-size:25px;background:linear-gradient(135deg,#8b5cf6,#22d3ee);box-shadow:0 0 24px #8b5cf655}header #menuToggle{padding:10px 12px;white-space:nowrap;background:#17233a}header h1{font-size:19px;letter-spacing:2.5px;margin:0;font-weight:850}header small{color:#8feaff;margin-left:auto;font-size:12px}
+    .main-menu{position:fixed;right:14px;top:76px;z-index:30;width:min(320px,calc(100vw - 28px));padding:10px;background:#111827;border:1px solid #34415f;border-radius:17px;box-shadow:0 18px 45px #0009;display:grid;gap:7px}.main-menu[hidden],.account-panel[hidden]{display:none}.main-menu button{text-align:left;background:#1a2438;border-color:#34415f}.account-panel{position:fixed;z-index:29;inset:82px 12px auto auto;width:min(440px,calc(100vw - 24px));max-height:calc(100vh - 110px);overflow:auto;background:#111827;border:1px solid #34415f;border-radius:18px;padding:17px;box-shadow:0 18px 55px #000b}.panel-head{display:flex;align-items:center;justify-content:space-between;gap:12px}.panel-head h3{margin:0}.account-panel p{color:#aebbd3}.account-panel label{display:block;margin:12px 0 5px;color:#cbd5e1;font-size:13px}.account-panel input{width:100%;min-width:0;margin-bottom:8px}.account-panel button{margin:4px 4px 4px 0}.account-panel .wide{width:100%}.account-panel .muted{font-size:12px;color:#9ba8c4}.admin-row{padding:10px 0;border-bottom:1px solid #ffffff18}.main-menu button:focus,.account-panel button:focus{outline:2px solid #8b5cf6}
+    main{max-width:1180px;margin:auto;padding:28px 20px 140px}
+    .hero{position:relative;overflow:hidden;background:linear-gradient(115deg,#241d4d 0%,#172b4b 55%,#0d4050 100%);padding:clamp(26px,5vw,48px);border:1px solid #a78bfa44;border-radius:26px;margin-bottom:25px;box-shadow:0 18px 55px #0005}
+    .hero:after{content:'♫';position:absolute;right:5%;top:50%;transform:translateY(-50%);font-size:clamp(100px,20vw,210px);line-height:1;color:#ffffff0c;pointer-events:none}.hero h2{font-size:clamp(28px,5vw,46px);letter-spacing:-1.4px;margin:0 0 10px;max-width:680px}.hero p{color:#c6d7f5;margin:0;font-size:15px}
+    .tools{display:flex;gap:10px;flex-wrap:wrap;margin:22px 0}.tools input{background:#101729;border:1px solid #34415f;box-shadow:inset 0 1px 0 #ffffff08}.tools input:focus{outline:2px solid #8b5cf6;border-color:transparent}
+    input,button{border:1px solid #34415f;border-radius:13px;padding:13px 15px;background:var(--panel);color:white;font:inherit}input{flex:1;min-width:190px}input::placeholder{color:#7f8ba7}button{cursor:pointer;transition:transform .18s,border-color .18s,filter .18s}button:hover{transform:translateY(-1px);border-color:#8b5cf6}button:active{transform:scale(.98)}button.active,.primary{background:linear-gradient(110deg,#8b5cf6,#22c8e5);color:#fff;border:0;font-weight:750;box-shadow:0 6px 22px #6366f144}
+    .tabs{display:flex;gap:9px;margin:20px 0;overflow-x:auto;padding:2px 1px 8px}.tabs button{min-width:95px;background:#111827;border-color:#2b3650;color:#b9c5dd;white-space:nowrap}.tabs button.active{background:linear-gradient(110deg,#8b5cf6,#22c8e5);color:white;border:0}
+    #status{color:var(--muted);font-size:13px;margin:13px 2px 17px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:17px}
+    .item{background:linear-gradient(155deg,#182137,#101522);border:1px solid #ffffff12;border-radius:19px;overflow:hidden;box-shadow:0 10px 28px #0003;transition:transform .2s,border-color .2s}.item:hover{transform:translateY(-4px);border-color:#8b5cf688}
+    .cover{width:100%;aspect-ratio:1;object-fit:cover;background:linear-gradient(135deg,#24204b,#103c50);display:grid;place-items:center;color:#6ee7ff;font-size:48px}
+    .info{padding:14px}.info strong{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14px}.info small{display:block;color:#94a3bd;margin:7px 0 12px}
+    .actions{display:flex;gap:7px}.actions button{padding:9px 7px;font-size:12px;flex:1;background:#202a41;border-color:#34415f}.actions button:first-child{background:linear-gradient(110deg,#7654d8,#277b9e);border:0}.actions button.danger{background:#512432;border-color:#8b334b}.actions button.restore{background:#17483f;border-color:#237c69}.item-actions{display:flex;gap:7px;margin-top:8px}.item-actions button{flex:1;padding:8px 6px;font-size:11px;background:#202a41;border-color:#34415f}.item-actions button.danger{background:#512432;border-color:#8b334b}.item-actions button.restore{background:#17483f;border-color:#237c69}.cover-upload{width:100%;margin-top:8px;padding:8px 6px;font-size:11px;background:#202a41;border-color:#34415f}.cover-file{display:none}
+    .empty{color:var(--muted);padding:32px 0;text-align:center}
+    .upload-panel{background:linear-gradient(145deg,#151d31,#101522);border:1px solid #34415f;border-radius:20px;padding:19px;margin:22px 0;box-shadow:0 12px 30px #0003}
+    .upload-panel h3{margin:0 0 7px;font-size:17px}.upload-panel p{color:var(--muted);margin:0 0 13px;font-size:13px}.upload-panel input[type=file]{display:block;width:100%;margin:10px 0;padding:10px;background:#0d1423}
+    #uploadBtn{width:100%;margin-top:8px}#uploadStatus{color:#a9b8d3;font-size:13px;margin-top:11px;white-space:pre-wrap;line-height:1.55}
+    .player{position:fixed;bottom:0;left:0;right:0;background:#0b1020ed;border-top:1px solid #ffffff20;padding:13px max(16px,calc((100% - 1180px)/2));z-index:10;backdrop-filter:blur(18px);box-shadow:0 -12px 35px #0006}
+    .player-inner{display:flex;align-items:center;gap:14px}.now{min-width:0;flex:1}.now strong,.now small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.now strong{font-size:14px}.now small{color:#9ba8c4;margin-top:5px;font-size:12px}
+    audio,video{width:100%;max-width:520px;accent-color:#a78bfa}video{display:block;margin:18px auto;max-height:55vh;background:#000;border-radius:16px}
+    @media(max-width:600px){header{padding:13px 15px}header h1{font-size:16px;letter-spacing:1.7px}main{padding:18px 13px 150px}.hero{border-radius:21px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}.item{border-radius:15px}.info{padding:11px}.player-inner{flex-wrap:wrap}.player audio{order:2;max-width:none;width:100%}.now{flex-basis:55%}.tabs button{min-width:88px;padding:11px 12px}}
+
+    .main-menu{display:none!important}.bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:20;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:2px;padding:7px 4px calc(7px + env(safe-area-inset-bottom));background:#080d1af5;border-top:1px solid #34415f;backdrop-filter:blur(18px)}
+    .bottom-nav button{min-width:0;padding:8px 3px;border:0;border-radius:8px;background:transparent;color:#dbe4f5;font-size:10px;line-height:1.2;white-space:normal;overflow-wrap:anywhere}
+    .bottom-nav button.active{background:#28345a;color:#fff}.player{bottom:62px;padding:8px 12px}.player-inner{gap:8px}.player audio{max-width:52%;height:34px}
+    .library-list{display:flex;flex-direction:column;gap:7px}.track-row{display:flex;align-items:center;gap:9px;padding:10px;background:#141d30;border:1px solid #293752;border-radius:11px;min-width:0}.track-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.track-row button{padding:7px 9px;font-size:12px}.track-row.selected{border-color:#a78bfa;background:#292044;box-shadow:0 0 0 1px #a78bfa55}.track-row{user-select:none;-webkit-user-select:none;touch-action:pan-y}.selection-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px;margin:0 0 12px;background:#171f32;border:1px solid #8b5cf6;border-radius:12px}.selection-toolbar[hidden]{display:none}.selection-toolbar strong{flex:1}.selection-toolbar button{padding:8px 10px;font-size:12px}.selection-hint{color:#9ba8c4;font-size:12px;margin:0 0 10px}
+    .section-admin{display:flex;gap:8px;flex-wrap:wrap;margin:12px 0}.section-admin input{min-width:120px}.section-admin button{padding:9px 11px;font-size:12px}.section-select-row{display:flex;align-items:center;gap:10px;padding:11px;margin:7px 0;background:#141d30;border:1px solid #293752;border-radius:11px;cursor:pointer}.section-select-row.selected{border-color:#a78bfa;background:#292044}.section-select-row input{flex:0 0 auto;min-width:0;width:18px;height:18px;margin:0;accent-color:#a78bfa}.section-select-row span{flex:1}.admin-actions{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.empty-trash{background:#512432;border-color:#a33b58;color:#fff}.trash-toolbar{display:flex;justify-content:flex-end;margin:0 0 12px}
+    @media(max-width:600px){main{padding-bottom:180px}.player{bottom:62px}.player-inner{flex-wrap:nowrap}.player audio{width:48%;max-width:48%}.now{flex:1;min-width:0}.now strong{font-size:12px}.now small{font-size:10px}}
+  </style>
+</head>
+<body>
+<header><span class="logo">♫</span><h1>FLORES MUSIC</h1><small id="connection">Verificando conexão…</small></header>
+<nav id="mainMenu" class="bottom-nav" aria-label="Navegação principal">
+  <button type="button" data-view="history">Minhas músicas reproduzidas</button>
+  <button type="button" data-view="explore">Explorar</button>
+  <button type="button" data-view="downloads">Downloads em andamento</button>
+  <button type="button" data-view="profile">Meu perfil</button>
+</nav>
+<section id="accountPanel" class="account-panel" hidden>
+  <div class="panel-head"><h3 id="panelTitle">Meu perfil</h3><button id="closePanel" type="button">Fechar ✕</button></div>
+  <div id="panelBody"></div>
+</section>
+<main>
+  <section class="hero"><h2>Sua música. Seus vídeos.</h2><p>Uma biblioteca para ouvir e assistir online ou offline.</p></section>
+  <div class="tools">
+    <input id="search" type="search" placeholder="Pesquisar músicas e vídeos…">
+    <button id="sync" class="primary" type="button">Sincronizar</button>
+  </div>
+  <section class="upload-panel" aria-label="Enviar arquivos">
+    <h3>Adicionar do dispositivo</h3>
+    <p>Escolha músicas ou vídeos salvos no seu celular ou computador.</p>
+    <input id="mediaFiles" type="file" accept="audio/*,video/*" multiple>
+    <button id="uploadBtn" class="primary" type="button">Enviar para a biblioteca</button>
+    <div id="uploadStatus" role="status" aria-live="polite"></div>
+  </section>
+  <div class="tabs">
+    <button class="active" data-tab="all">Tudo</button>
+    <button data-tab="audio">Músicas</button>
+    <button data-tab="video">Vídeos</button>
+    <button data-tab="saved">Baixados</button>
+    <button data-tab="trash">🗑️ Lixeira</button>
+  </div>
+  <div id="customSections" class="tabs" aria-label="Seções criadas pelo administrador"></div>
+  <div id="status">Configure o Supabase para carregar sua biblioteca online.</div>
+  <div id="trashToolbar" class="trash-toolbar" hidden><button type="button" class="empty-trash" id="emptyTrashBtn">Esvaziar lixeira</button></div>
+  <div id="selectionToolbar" class="selection-toolbar" hidden><strong id="selectionCount">0 selecionadas</strong><button type="button" id="cancelSelectionBtn">Cancelar</button><button type="button" id="restoreSelectedBtn" hidden>Restaurar</button><button type="button" id="moveSelectedBtn">Mover para lixeira</button><button type="button" id="deleteSelectedBtn" class="empty-trash" hidden>Excluir selecionadas</button></div>
+  <p id="selectionHint" class="selection-hint" hidden>Toque nas outras músicas para selecionar. Toque em Cancelar para sair.</p>
+  <div id="library" class="grid"></div>
+  <video id="videoPlayer" controls playsinline hidden></video>
+</main>
+<div class="player">
+  <div class="player-inner">
+    <div class="now"><strong id="nowTitle">Nada tocando</strong><small id="nowSub">Escolha uma música da biblioteca</small></div>
+    <audio id="audioPlayer" controls preload="metadata"></audio>
+  </div>
+</div>
+<script>
+/*
+  CONFIGURAÇÃO:
+  1) Crie uma tabela public.media com:
+     id (uuid), title (text), type (text: 'audio' ou 'video'),
+     storage_path (text), cover_url (text, opcional), created_at (timestamptz).
+  2) Crie um bucket público no Supabase Storage chamado "media".
+  3) Coloque sua URL e sua chave publishable/anon abaixo.
+  4) Os arquivos no bucket devem estar no caminho indicado em storage_path.
+  Nunca coloque a chave service_role neste HTML.
+*/
+const SUPABASE_URL = "https://zlvawybbryqgsxqxhtrm.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_KpiuVnIuxa1yd1pFkybR1A_gILLL_C6";
+const BUCKET = "media";
+const TABLE = "media";
+const db = (window.supabase && SUPABASE_URL.startsWith("https://") &&
+            !SUPABASE_URL.includes("COLE_AQUI") && !SUPABASE_ANON_KEY.includes("COLE_AQUI"))
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+
+const $ = id => document.getElementById(id);
+const audio = $("audioPlayer"), video = $("videoPlayer");
+let records = [], tab = "all";
+let currentUser = null, currentAdmin = null, downloadTasks = [];
+const DB_NAME = "flores-music-offline";
+function openLocalDB(){return new Promise((resolve,reject)=>{
+  const req=indexedDB.open(DB_NAME,1);
+  req.onupgradeneeded=()=>req.result.createObjectStore("files",{keyPath:"id"});
+  req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error);
+});}
+async function savedFiles(){const d=await openLocalDB();return new Promise((res,rej)=>{
+  const r=d.transaction("files").objectStore("files").getAll();r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);
+});}
+async function saveOffline(item){
+  try{
+    const response=await fetch(item.url);if(!response.ok)throw Error("Não foi possível baixar o arquivo.");
+    const blob=await response.blob();const d=await openLocalDB();
+    await new Promise((res,rej)=>{const tx=d.transaction("files","readwrite");tx.objectStore("files").put({...item,blob});tx.oncomplete=res;tx.onerror=()=>rej(tx.error);});
+    render();$("status").textContent="Arquivo salvo para uso offline.";
+  }catch(e){alert("Falha ao baixar: "+e.message);}
+}
+async function uploadSelectedFiles(){
+  const input=$("mediaFiles"), button=$("uploadBtn"), status=$("uploadStatus");
+  const files=Array.from(input.files||[]);
+  if(!db){status.textContent="Supabase ainda não está configurado neste HTML. Preencha a URL e a chave pública.";return;}
+  if(!files.length){status.textContent="Escolha pelo menos um arquivo primeiro.";return;}
+  button.disabled=true;button.textContent="Enviando…";
+  let sent=0;const errors=[];
+  try{
+    for(const file of files){
+      const isAudio=file.type.startsWith("audio/");
+      const isVideo=file.type.startsWith("video/");
+      if(!isAudio&&!isVideo){errors.push(`${file.name}: formato não reconhecido.`);continue;}
+      if(file.size===0){errors.push(`${file.name}: arquivo vazio.`);continue;}
+      if(file.size>250*1024*1024){errors.push(`${file.name}: maior que 250 MB.`);continue;}
+      status.textContent=`Enviando ${sent+1} de ${files.length}: ${file.name}`;
+      const safeName=file.name.normalize("NFKD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-zA-Z0-9._-]/g,"_");
+      const path=`${isAudio?"musicas":"videos"}/${Date.now()}-${crypto.randomUUID()}-${safeName}`;
+      const {error:storageError}=await db.storage.from(BUCKET).upload(path,file,{contentType:file.type||"application/octet-stream",upsert:false});
+      if(storageError){errors.push(`${file.name}: falha no Storage — ${storageError.message}`);continue;}
+      const title=file.name.replace(/\.[^.]+$/,"");
+      const {error:dbError}=await db.from(TABLE).insert({title,type:isAudio?"audio":"video",storage_path:path});
+      if(dbError){
+        errors.push(`${file.name}: arquivo chegou ao Storage, mas não foi registrado na tabela — ${dbError.message}`);
+        continue;
+      }
+      sent++;
+    }
+    await loadLibrary();
+    status.textContent=`Concluído: ${sent} de ${files.length} arquivo(s) enviado(s).`+(errors.length?"\n\nProblemas:\n"+errors.join("\n"):"");
+    if(sent===files.length)input.value="";
+  }catch(e){status.textContent="Erro durante o envio: "+(e.message||e);}
+  finally{button.disabled=false;button.textContent="Enviar para a biblioteca";}
+}
+async function loadLibrary(){
+  if(!db){$("status").textContent="Falta configurar a URL e a chave pública do Supabase no HTML.";render();return;}
+  $("status").textContent="Carregando biblioteca…";
+  try{
+    const {data,error}=await db.from(TABLE).select("*").order("created_at",{ascending:false});
+    if(error)throw error;
+    records=(data||[]).map(x=>({...x,url:db.storage.from(BUCKET).getPublicUrl(x.storage_path).data.publicUrl}));
+    const activeCount=records.filter(x=>!x.deleted_at).length;
+    const trashCount=records.filter(x=>!!x.deleted_at).length;
+    $("status").textContent=`${activeCount} arquivo(s) na biblioteca · ${trashCount} na lixeira.`;
+    render();
+  }catch(e){$("status").textContent="Erro ao carregar: "+e.message+" — exibindo arquivos já baixados.";render();}
+}
+function escapeHTML(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+let selectedTracks=new Set();
+let selectionMode=false;
+let longPressTimer=null;
+let longPressTriggered=false;
+let longPressTarget=null;
+
+function updateSelectionToolbar(){
+  const toolbar=$("selectionToolbar"),hint=$("selectionHint");
+  const count=selectedTracks.size;
+  toolbar.hidden=!selectionMode;
+  hint.hidden=!selectionMode;
+  $("selectionCount").textContent=`${count} selecionada(s)`;
+  const inTrash=tab==="trash";
+  $("restoreSelectedBtn").hidden=!inTrash;
+  $("moveSelectedBtn").hidden=inTrash;
+  $("deleteSelectedBtn").hidden=!inTrash;
+}
+function toggleTrackSelection(id){
+  const key=String(id);
+  if(selectedTracks.has(key))selectedTracks.delete(key);else selectedTracks.add(key);
+  selectionMode=true;
+  updateSelectionToolbar();
+  document.querySelectorAll(".track-row[data-track-id]").forEach(row=>{
+    row.classList.toggle("selected",selectedTracks.has(row.dataset.trackId));
+    row.setAttribute("aria-selected",selectedTracks.has(row.dataset.trackId)?"true":"false");
+  });
+}
+function cancelTrackSelection(){
+  selectedTracks.clear();selectionMode=false;updateSelectionToolbar();
+  document.querySelectorAll(".track-row.selected").forEach(row=>row.classList.remove("selected"));
+}
+async function performSelectedAction(action){
+  const ids=[...selectedTracks];
+  if(!ids.length){alert("Primeiro selecione pelo menos uma música.");return;}
+  const chosen=records.filter(x=>ids.includes(String(x.id)));
+  if(action==="move"){
+    if(!confirm(`Mover ${chosen.length} arquivo(s) para a lixeira?`))return;
+    const {error}=await db.from(TABLE).update({deleted_at:new Date().toISOString()}).in("id",chosen.map(x=>x.id));
+    if(error){alert("Não foi possível mover os arquivos: "+error.message);return;}
+  }else if(action==="restore"){
+    if(!confirm(`Restaurar ${chosen.length} arquivo(s)?`))return;
+    const {error}=await db.from(TABLE).update({deleted_at:null}).in("id",chosen.map(x=>x.id));
+    if(error){alert("Não foi possível restaurar: "+error.message);return;}
+  }else if(action==="delete"){
+    if(!confirm(`Excluir definitivamente ${chosen.length} arquivo(s)? Essa ação não pode ser desfeita.`))return;
+    const paths=chosen.map(x=>x.storage_path).filter(Boolean);
+    const {error:storageError}=await db.storage.from(BUCKET).remove(paths);
+    if(storageError){alert("Não foi possível apagar os arquivos: "+storageError.message);return;}
+    const {error:rowError}=await db.from(TABLE).delete().in("id",chosen.map(x=>x.id));
+    if(rowError){alert("Os arquivos foram removidos do armazenamento, mas os registros não foram apagados: "+rowError.message);return;}
+  }
+  cancelTrackSelection();
+  await loadLibrary();
+}
+async function render(){
+  const offline=await savedFiles();
+  let list=tab==="saved"?offline:records;
+  if(tab==="trash")list=records.filter(x=>!!x.deleted_at);
+  else if(tab==="all")list=records.filter(x=>!x.deleted_at);
+  else if(tab==="audio")list=records.filter(x=>x.type==="audio"&&!x.deleted_at);
+  else if(tab==="video")list=records.filter(x=>x.type==="video"&&!x.deleted_at);
+  const q=$("search").value.toLowerCase().trim();
+  const trashToolbar=$("trashToolbar");
+  if(trashToolbar){trashToolbar.hidden=tab!=="trash";const emptyBtn=$("emptyTrashBtn");if(emptyBtn)emptyBtn.onclick=emptyTrash;}
+  list=list.filter(x=>(x.title||"").toLowerCase().includes(q));
+  const visibleIds=new Set(list.map(x=>String(x.id)));
+  selectedTracks=new Set([...selectedTracks].filter(id=>visibleIds.has(id)));
+  if(!selectedTracks.size)selectionMode=false;
+  updateSelectionToolbar();
+  $("library").className="library-list";
+  $("library").innerHTML=list.length?list.map(x=>{
+    const isSaved=offline.some(y=>y.id===x.id);
+    const inTrash=!!x.deleted_at;
+    const id=String(x.id).replace(/'/g,"\\'");
+    const selected=selectedTracks.has(String(x.id));
+    return `<div class="track-row ${selected?"selected":""}" data-track-id="${escapeHTML(x.id)}" role="button" tabindex="0" aria-selected="${selected}">${x.cover_url?`<img src="${escapeHTML(x.cover_url)}" alt="" style="width:42px;height:42px;object-fit:cover;border-radius:7px;pointer-events:none">`:`<span aria-hidden="true">${x.type==="video"?"▶":"♫"}</span>`}<span class="track-title" title="${escapeHTML(x.title)}">${escapeHTML(x.title)}</span>${inTrash?`<button class="restore" data-action="restore" data-id="${escapeHTML(x.id)}">Restaurar</button>`:`<button data-action="play" data-id="${escapeHTML(x.id)}">▶</button>${!isSaved&&x.url?`<button data-action="download" data-id="${escapeHTML(x.id)}">↓</button>`:""}`}</div>`;
+  }).join(""):`<div class="empty">${tab==="trash"?"A lixeira está vazia.":"Nenhum arquivo nesta seção ainda."}</div>`;
+}
+async function moveToTrash(id){
+  if(!db)return;
+  const item=records.find(x=>String(x.id)===String(id));if(!item)return;
+  if(!confirm(`Mover “${item.title}” para a lixeira?`))return;
+  const {error}=await db.from(TABLE).update({deleted_at:new Date().toISOString()}).eq("id",id);
+  if(error){alert("Não foi possível mover para a lixeira: "+error.message);return;}
+  await loadLibrary();
+}
+async function restoreItem(id){
+  if(!db)return;
+  const {error}=await db.from(TABLE).update({deleted_at:null}).eq("id",id);
+  if(error){alert("Não foi possível restaurar: "+error.message);return;}
+  await loadLibrary();
+}
+async function deletePermanently(id){
+  if(!db)return;
+  const item=records.find(x=>String(x.id)===String(id));if(!item)return;
+  if(!confirm(`Excluir DEFINITIVAMENTE “${item.title}”? O arquivo também será apagado do armazenamento e não poderá ser restaurado.`))return;
+  const {error:storageError}=await db.storage.from(BUCKET).remove([item.storage_path]);
+  if(storageError){alert("O arquivo não foi apagado do armazenamento: "+storageError.message);return;}
+  const {error:rowError}=await db.from(TABLE).delete().eq("id",id);
+  if(rowError){alert("O arquivo foi removido do armazenamento, mas o registro não foi apagado: "+rowError.message);return;}
+  await loadLibrary();
+}
+async function uploadCover(id,input){
+  const file=input.files&&input.files[0];
+  if(!file)return;
+  if(!file.type.startsWith("image/")){alert("Escolha uma imagem para a capa.");input.value="";return;}
+  if(file.size>8*1024*1024){alert("A imagem deve ter no máximo 8 MB.");input.value="";return;}
+  if(!db){alert("Não foi possível conectar ao Supabase.");input.value="";return;}
+  const item=records.find(x=>String(x.id)===String(id));
+  if(!item){alert("Não encontrei essa música na biblioteca.");input.value="";return;}
+  const ext=(file.name.split(".").pop()||"jpg").toLowerCase().replace(/[^a-z0-9]/g,"")||"jpg";
+  const path=`capas/${Date.now()}-${crypto.randomUUID()}.${ext}`;
+  try{
+    const {error:uploadError}=await db.storage.from(BUCKET).upload(path,file,{contentType:file.type,upsert:false});
+    if(uploadError)throw uploadError;
+    const coverUrl=db.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+    const {error:updateError}=await db.from(TABLE).update({cover_url:coverUrl}).eq("id",id);
+    if(updateError)throw updateError;
+    await loadLibrary();
+    alert("Capa atualizada com sucesso!");
+  }catch(e){alert("Não foi possível salvar a capa: "+(e.message||e));}
+  finally{input.value="";}
+}
+async function playItem(id){
+  const local=(await savedFiles()).find(x=>String(x.id)===String(id));
+  const item=local||records.find(x=>String(x.id)===String(id));if(!item)return;
+  const src=local?URL.createObjectURL(local.blob):item.url;
+  addHistory(item);
+  $("nowTitle").textContent=item.title;$("nowSub").textContent=local?"Reprodução offline":"Flores Music";
+  if(item.type==="video"){
+    audio.pause();video.hidden=false;video.src=src;video.play().catch(()=>{});
+    video.scrollIntoView({behavior:"smooth",block:"center"});
+  }else{
+    video.pause();video.hidden=true;video.removeAttribute("src");audio.src=src;audio.play().catch(()=>{});
+  }
+}
+function downloadItem(id){const item=records.find(x=>String(x.id)===String(id));if(item)saveOffline(item);}
+audio.addEventListener("ended",()=>{const queue=records.filter(x=>x.type==="audio"&&!x.deleted_at);const current=queue.findIndex(x=>x.url===audio.src||x.title===$("nowTitle").textContent);if(queue.length){const next=queue[(current+1+queue.length)%queue.length];playItem(next.id);}});
+renderSections();
+document.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{
+  document.querySelectorAll("[data-tab]").forEach(x=>x.classList.remove("active"));
+  b.classList.add("active");tab=b.dataset.tab;cancelTrackSelection();render();
+}));
+$("search").addEventListener("input",render);$("sync").addEventListener("click",loadLibrary);
+$("uploadBtn").addEventListener("click",uploadSelectedFiles);
+$("cancelSelectionBtn").addEventListener("click",cancelTrackSelection);
+$("moveSelectedBtn").addEventListener("click",()=>performSelectedAction("move"));
+$("restoreSelectedBtn").addEventListener("click",()=>performSelectedAction("restore"));
+$("deleteSelectedBtn").addEventListener("click",()=>performSelectedAction("delete"));
+
+const libraryEl=$("library");
+libraryEl.addEventListener("pointerdown",e=>{
+  const row=e.target.closest(".track-row[data-track-id]");
+  if(!row||e.target.closest("button"))return;
+  longPressTriggered=false;longPressTarget=row;
+  clearTimeout(longPressTimer);
+  longPressTimer=setTimeout(()=>{
+    longPressTriggered=true;
+    if(!selectionMode)toggleTrackSelection(row.dataset.trackId);
+  },550);
+});
+["pointerup","pointercancel","pointerleave"].forEach(name=>libraryEl.addEventListener(name,()=>clearTimeout(longPressTimer)));
+libraryEl.addEventListener("contextmenu",e=>{
+  if(e.target.closest(".track-row"))e.preventDefault();
+});
+libraryEl.addEventListener("click",e=>{
+  const button=e.target.closest("button[data-action]");
+  if(button){
+    const id=button.dataset.id,action=button.dataset.action;
+    if(action==="play")playItem(id);
+    else if(action==="download")downloadItem(id);
+    else if(action==="restore")restoreItem(id);
+    return;
+  }
+  const row=e.target.closest(".track-row[data-track-id]");
+  if(!row)return;
+  if(longPressTriggered){longPressTriggered=false;return;}
+  if(selectionMode){toggleTrackSelection(row.dataset.trackId);return;}
+  playItem(row.dataset.trackId);
+});
+libraryEl.addEventListener("keydown",e=>{
+  if(e.key!=="Enter"&&e.key!==" ")return;
+  const row=e.target.closest(".track-row[data-track-id]");
+  if(!row)return;
+  e.preventDefault();
+  if(selectionMode)toggleTrackSelection(row.dataset.trackId);else playItem(row.dataset.trackId);
+});
+const historyKey="flores-music-history-v1";
+function getHistory(){try{return JSON.parse(localStorage.getItem(historyKey)||"[]")}catch{return []}}
+function addHistory(item){const h=getHistory().filter(x=>String(x.id)!==String(item.id));h.unshift({id:item.id,title:item.title,type:item.type,played_at:new Date().toISOString()});localStorage.setItem(historyKey,JSON.stringify(h.slice(0,100)));}
+function openPanel(view){
+  const panel=$("accountPanel"),body=$("panelBody");panel.hidden=false;
+  const titles={history:"Minhas músicas reproduzidas",explore:"Explorar",downloads:"Downloads em andamento",profile:"Meu perfil",admin:"Administrador"};$("panelTitle").textContent=titles[view]||"Flores Music";
+  if(view==="history"){
+    const h=getHistory();body.innerHTML=h.length?h.map(x=>`<div class="admin-row"><strong>${escapeHTML(x.title)}</strong><p class="muted">${x.type==="video"?"Vídeo":"Música"} · ${new Date(x.played_at).toLocaleString("pt-BR")}</p><button type="button" onclick="playItem('${String(x.id).replace(/'/g,"\\'")}')">▶ Tocar novamente</button></div>`).join(""):'<p>Nenhuma reprodução registrada neste aparelho.</p>';
+  }else if(view==="explore"){
+    body.innerHTML='<p>Explore toda a biblioteca pública do Flores Music. Use a lupa de pesquisa na página para encontrar uma música ou vídeo.</p><button class="wide" type="button" id="goLibrary">Ver biblioteca</button>';
+    $("goLibrary").onclick=()=>{panel.hidden=true;$("search").focus();window.scrollTo({top:0,behavior:"smooth"})};
+  }else if(view==="downloads"){
+    body.innerHTML=downloadTasks.length?downloadTasks.map((t,i)=>`<div class="admin-row"><strong>${escapeHTML(t.title)}</strong><p class="muted">${t.status}</p><button type="button" onclick="cancelDownload(${i})">✕ Cancelar</button></div>`).join(""):'<p>Nenhum download em andamento.</p><p class="muted">Os arquivos baixados aparecem na aba “Baixados”.</p>';
+  }else if(view==="profile"){
+    body.innerHTML=currentUser?`<p>Conta conectada: <strong>${escapeHTML(currentUser.email||"Usuário")}</strong></p><button type="button" id="openAdminBtn">Área do administrador</button><button type="button" id="signOutBtn">Sair da conta</button>`:'<p>Entre com sua conta para acessar seu perfil.</p><label for="profileEmail">E-mail</label><input id="profileEmail" type="email" autocomplete="username" placeholder="Seu e-mail"><label for="profilePassword">Senha</label><input id="profilePassword" type="password" autocomplete="current-password" placeholder="Sua senha"><button class="primary wide" id="profileLogin" type="button">Entrar</button><p id="profileMsg" class="muted"></p><button type="button" id="profileAdminEntry">Área do administrador</button>';
+    if(currentUser){$("signOutBtn").onclick=signOut;$("openAdminBtn").onclick=()=>openPanel("admin")}
+    else {$("profileLogin").onclick=()=>signIn($("profileEmail").value,$("profilePassword").value,"profileMsg");$("profileAdminEntry").onclick=()=>openPanel("admin");}
+  }else if(view==="admin"){
+    if(currentAdmin){
+      body.innerHTML=`<p>Conectado como <strong>${escapeHTML(currentAdmin.username)}</strong> · ${escapeHTML(currentAdmin.role)}</p><h4>Gerenciar seções da biblioteca</h4><div class="section-admin"><input id="newSectionName" maxlength="35" placeholder="Nome da nova seção"><button class="primary" id="addSectionBtn" type="button">Criar seção</button></div><div id="adminSectionsList"></div><h4>Gerenciar músicas</h4><p class="muted">Para selecionar músicas, mantenha uma pressionada por um instante. Depois toque nas outras para selecionar várias.</p><button type="button" id="adminManageMusicBtn">Abrir biblioteca para gerenciar músicas</button><div class="admin-actions"><button type="button" class="danger" id="deleteSelectedSectionsBtn">Apagar selecionadas</button></div><div id="adminUsersList">Carregando administradores…</div><p class="muted">A criação e remoção de contas administrativas precisa de uma função segura no servidor; não será feita diretamente pelo HTML nem expondo chave secreta.</p><button type="button" id="adminSignOut">Sair</button>`;
+      loadAdminUsers();renderAdminSections();$("addSectionBtn").onclick=addSection;$("deleteSelectedSectionsBtn").onclick=deleteSelectedSections;$("adminSignOut").onclick=signOut;$("adminManageMusicBtn").onclick=()=>{ $("accountPanel").hidden=true; tab="all"; document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab==="all")); cancelTrackSelection(); render(); window.scrollTo({top:document.querySelector(".tabs").offsetTop,behavior:"smooth"}); };
+    }else{
+      body.innerHTML='<p>Área restrita. Entre com o e-mail e a senha da conta administradora.</p><label for="adminEmail">E-mail</label><input id="adminEmail" type="email" autocomplete="username" placeholder="E-mail do administrador"><label for="adminPassword">Senha</label><input id="adminPassword" type="password" autocomplete="current-password" placeholder="Senha"><button class="primary wide" id="adminLogin" type="button">Entrar no painel</button><p id="adminMsg" class="muted"></p>';
+      $("adminLogin").onclick=()=>signIn($("adminEmail").value,$("adminPassword").value,"adminMsg");
+    }
+  }
+}
+async function refreshAuth(){
+  if(!db)return;
+  const {data:{session}}=await db.auth.getSession();currentUser=session?.user||null;currentAdmin=null;
+  if(currentUser){const {data,error}=await db.from("admin_users").select("user_id,username,role").eq("user_id",currentUser.id).maybeSingle();if(!error&&data)currentAdmin=data;}
+}
+async function signIn(email,password,msgId){
+  const msg=$(msgId);if(!email||!password){msg.textContent="Informe e-mail e senha.";return;}
+  if(!db){msg.textContent="Supabase não está configurado.";return;}
+  msg.textContent="Verificando acesso…";
+  const {data,error}=await db.auth.signInWithPassword({email,password});
+  if(error){msg.textContent="Não foi possível entrar: confira os dados da conta.";return;}
+  currentUser=data.user;const {data:admin,error:adminError}=await db.from("admin_users").select("user_id,username,role").eq("user_id",currentUser.id).maybeSingle();
+  currentAdmin=!adminError?admin:null;
+  if(msgId==="adminMsg"&&!currentAdmin){await db.auth.signOut();currentUser=null;msg.textContent="Esta conta não está cadastrada como administradora.";return;}
+  openPanel(msgId==="adminMsg"?"admin":"profile");
+}
+async function signOut(){if(db)await db.auth.signOut();currentUser=null;currentAdmin=null;openPanel("profile");}
+async function loadAdminUsers(){
+  const target=$("adminUsersList");if(!target||!currentAdmin)return;
+  const {data,error}=await db.from("admin_users").select("username,role,created_at").order("created_at");
+  if(error){target.textContent="Não foi possível carregar os administradores: "+error.message;return;}
+  target.innerHTML="<h4>Administradores cadastrados</h4>"+(data||[]).map(x=>`<div class="admin-row"><strong>${escapeHTML(x.username)}</strong><p class="muted">${escapeHTML(x.role)}</p></div>`).join("");
+}
+const sectionsKey="flores-music-admin-sections-v1";
+function getSections(){try{return JSON.parse(localStorage.getItem(sectionsKey)||"[]")}catch{return []}}
+function saveSections(a){localStorage.setItem(sectionsKey,JSON.stringify(a));renderSections();renderAdminSections()}
+function renderSections(){const el=$("customSections");if(!el)return;const arr=getSections();el.innerHTML=arr.map((x,i)=>`<button class="section-chip" type="button" onclick="filterSection(${i})">${escapeHTML(x)}</button>`).join("")}
+function filterSection(i){const name=getSections()[i];if(!name)return;alert("A seção ‘"+name+"’ foi criada no painel Admin. Para vincular músicas a ela em todos os aparelhos, é necessário salvar essa relação no banco Supabase.")}
+const selectedSections=new Set();
+function renderAdminSections(){
+  const el=$("adminSectionsList");if(!el)return;
+  const arr=getSections();
+  el.innerHTML=arr.map((name,i)=>`<div class="section-select-row ${selectedSections.has(name)?"selected":""}" role="button" tabindex="0" onclick="toggleSectionSelection(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleSectionSelection(${i})}"><input type="checkbox" tabindex="-1" aria-label="Selecionar ${escapeHTML(name)}" ${selectedSections.has(name)?"checked":""} readonly><span>${escapeHTML(name)}</span></div>`).join("")||'<p class="muted">Nenhuma seção criada ainda.</p>';
+  const btn=$("deleteSelectedSectionsBtn");if(btn)btn.textContent=`Apagar selecionadas (${selectedSections.size})`;
+}
+function toggleSectionSelection(i){const name=getSections()[i];if(!name)return;if(selectedSections.has(name))selectedSections.delete(name);else selectedSections.add(name);renderAdminSections()}
+function deleteSelectedSections(){
+  if(!selectedSections.size){alert("Toque nas seções que deseja apagar primeiro.");return;}
+  const arr=getSections().filter(name=>!selectedSections.has(name));
+  saveSections(arr);selectedSections.clear();renderAdminSections();
+}
+function addSection(){const input=$("newSectionName"),name=(input?.value||"").trim();if(!name)return alert("Digite o nome da seção.");const arr=getSections();if(arr.some(x=>x.toLowerCase()===name.toLowerCase()))return alert("Essa seção já existe.");arr.push(name);saveSections(arr);input.value=""}
+function removeSection(i){toggleSectionSelection(i)}
+async function emptyTrash(){
+  const trashed=records.filter(x=>!!x.deleted_at);
+  if(!trashed.length){alert("A lixeira já está vazia.");return;}
+  if(!confirm(`Esvaziar a lixeira e excluir definitivamente ${trashed.length} arquivo(s)? Essa ação não pode ser desfeita.`))return;
+  if(!db){alert("Supabase não está conectado.");return;}
+  const paths=trashed.map(x=>x.storage_path).filter(Boolean);
+  const {error:storageError}=await db.storage.from(BUCKET).remove(paths);
+  if(storageError){alert("Não foi possível apagar os arquivos do armazenamento: "+storageError.message);return;}
+  const ids=trashed.map(x=>x.id);
+  const {error:rowError}=await db.from(TABLE).delete().in("id",ids);
+  if(rowError){alert("Os arquivos foram removidos do armazenamento, mas alguns registros não foram apagados: "+rowError.message);return;}
+  await loadLibrary();
+}
+function cancelDownload(index){const task=downloadTasks[index];if(task?.controller)task.controller.abort();downloadTasks.splice(index,1);openPanel("downloads")}
+async function saveOffline(item){
+  const controller=new AbortController();const task={title:item.title,status:"Baixando…",controller};downloadTasks.push(task);openPanel("downloads");
+  try{
+    const response=await fetch(item.url,{signal:controller.signal});if(!response.ok)throw Error("Não foi possível baixar o arquivo.");
+    const blob=await response.blob();const d=await openLocalDB();
+    await new Promise((res,rej)=>{const tx=d.transaction("files","readwrite");tx.objectStore("files").put({...item,blob});tx.oncomplete=res;tx.onerror=()=>rej(tx.error);});
+    task.status="Concluído";render();$("status").textContent="Arquivo salvo para uso offline.";
+  }catch(e){task.status=e.name==="AbortError"?"Cancelado":"Falha: "+e.message;if(e.name!=="AbortError")alert("Falha ao baixar: "+e.message);}
+  finally{downloadTasks=downloadTasks.filter(x=>x!==task);}
+}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-view]");if(b)openPanel(b.dataset.view)});
+
+$("closePanel").addEventListener("click",()=>$("accountPanel").hidden=true);
+function updateConnection(){$("connection").textContent=navigator.onLine?"Online":"Offline";}
+window.addEventListener("online",()=>{updateConnection();loadLibrary();});
+window.addEventListener("offline",updateConnection);
+updateConnection();refreshAuth();loadLibrary();
+</script>
+</body>
+</html>
