@@ -2,35 +2,211 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Página não encontrada - Flores Music</title>
-  <style>
-    body {
-      background: #101114;
-      color: white;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 80px 20px;
-    }
-    h1 {
-      color: #ff1744;
-      font-size: 60px;
-    }
-    a {
-      display: inline-block;
-      background: #ff1744;
-      color: white;
-      padding: 14px 24px;
-      border-radius: 8px;
-      text-decoration: none;
-    }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flores Music Runner</title>
+<style>
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: #101114;
+  color: white;
+  font-family: Arial, sans-serif;
+  text-align: center;
+  padding: 35px 15px;
+}
+h1 { color: #ff1744; font-size: 48px; margin: 5px; }
+p { color: #bbb; }
+#game {
+  max-width: 750px;
+  width: 100%;
+  height: 220px;
+  margin: 25px auto 12px;
+  background: #1c1d23;
+  border-bottom: 4px solid #ff1744;
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  touch-action: manipulation;
+}
+#player {
+  position: absolute;
+  left: 45px;
+  bottom: 0;
+  font-size: 42px;
+}
+.obstacle {
+  position: absolute;
+  bottom: 0;
+  right: -50px;
+  font-size: 38px;
+}
+.note {
+  position: absolute;
+  bottom: 65px;
+  right: -30px;
+  font-size: 27px;
+}
+.jump { animation: jump .55s ease-out; }
+@keyframes jump {
+  0%,100% { bottom: 0; }
+  50% { bottom: 105px; }
+}
+button, a {
+  display: inline-block;
+  background: #ff1744;
+  color: white;
+  border: 0;
+  padding: 13px 22px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 16px;
+  cursor: pointer;
+  margin: 8px;
+}
+#score { color: #ff1744; font-weight: bold; }
+</style>
 </head>
 <body>
-  <h1>404</h1>
-  <h2>Página não encontrada!</h2>
-  <p>Essa página não existe no Flores Music.</p>
-  <a href="/">Voltar ao Flores Music</a>
+
+<h1>404</h1>
+<h2>Ops! Você saiu da música!</h2>
+<p>Enquanto não encontra a página, que tal jogar?</p>
+
+<div id="game">
+  <div id="player">🎧</div>
+</div>
+
+<p>Pontuação: <span id="score">0</span> | Recorde: <span id="record">0</span></p>
+<p id="message">Pressione ESPAÇO ou toque na tela para pular!</p>
+<button onclick="startGame()">Jogar novamente</button>
+<br>
+<a href="/">Voltar ao Flores Music</a>
+
+<script>
+const game = document.getElementById("game");
+const player = document.getElementById("player");
+const scoreText = document.getElementById("score");
+const recordText = document.getElementById("record");
+const message = document.getElementById("message");
+
+let score = 0;
+let record = Number(localStorage.getItem("floresRecord") || 0);
+let running = false;
+let jumping = false;
+let obstacleX = 0;
+let noteX = 0;
+let frame;
+let lastTime = 0;
+
+recordText.textContent = record;
+
+function jump() {
+  if (!running || jumping) return;
+  jumping = true;
+  player.classList.add("jump");
+  setTimeout(() => {
+    player.classList.remove("jump");
+    jumping = false;
+  }, 550);
+}
+
+function startGame() {
+  cancelAnimationFrame(frame);
+  game.querySelectorAll(".obstacle,.note").forEach(e => e.remove());
+
+  score = 0;
+  obstacleX = game.clientWidth + 30;
+  noteX = game.clientWidth + 250;
+  lastTime = 0;
+  running = true;
+  jumping = false;
+  scoreText.textContent = "0";
+  message.textContent = "Boa sorte! 🎵";
+
+  const obstacle = document.createElement("div");
+  obstacle.className = "obstacle";
+  obstacle.textContent = "🔊";
+  game.appendChild(obstacle);
+
+  const note = document.createElement("div");
+  note.className = "note";
+  note.textContent = "🎵";
+  game.appendChild(note);
+
+  runGame(0);
+}
+
+function runGame(timestamp) {
+  if (!running) return;
+  const delta = lastTime ? Math.min((timestamp - lastTime) / 16.67, 3) : 1;
+  lastTime = timestamp;
+
+  const obstacle = game.querySelector(".obstacle");
+  const note = game.querySelector(".note");
+
+  obstacleX -= 5 * delta;
+  noteX -= 4 * delta;
+
+  if (obstacleX < -50) {
+    obstacleX = game.clientWidth + 30;
+    score += 1;
+    scoreText.textContent = score;
+  }
+
+  if (noteX < -30) noteX = game.clientWidth + 220;
+
+  obstacle.style.left = obstacleX + "px";
+  note.style.left = noteX + "px";
+
+  const playerBottom = jumping ? 105 : 0;
+  const playerLeft = 45;
+  const playerRight = 85;
+
+  if (
+    obstacleX < playerRight &&
+    obstacleX + 38 > playerLeft &&
+    playerBottom < 38
+  ) {
+    endGame();
+    return;
+  }
+
+  if (
+    noteX < playerRight &&
+    noteX + 27 > playerLeft &&
+    jumping
+  ) {
+    score += 5;
+    scoreText.textContent = score;
+    noteX = game.clientWidth + 220;
+  }
+
+  frame = requestAnimationFrame(runGame);
+}
+
+function endGame() {
+  running = false;
+  cancelAnimationFrame(frame);
+  message.textContent = "Fim de jogo! Sua pontuação: " + score;
+
+  if (score > record) {
+    record = score;
+    localStorage.setItem("floresRecord", record);
+    recordText.textContent = record;
+    message.textContent += " 🏆 Novo recorde!";
+  }
+}
+
+document.addEventListener("keydown", e => {
+  if (e.code === "Space" || e.code === "ArrowUp") {
+    e.preventDefault();
+    jump();
+  }
+});
+
+game.addEventListener("pointerdown", jump);
+</script>
+
 </body>
 </html>
