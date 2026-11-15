@@ -516,7 +516,10 @@ function openPanel(view){
     }else{
       body.innerHTML='<p>Área restrita. Entre com o e-mail e a senha da conta administradora.</p><label for="adminEmail">E-mail</label><input id="adminEmail" type="email" autocomplete="username" placeholder="E-mail do administrador"><label for="adminPassword">Senha</label><input id="adminPassword" type="password" autocomplete="current-password" placeholder="Senha"><button class="primary wide" id="adminLogin" type="button">Entrar no painel</button><p id="adminMsg" class="muted"></p>';
       $("adminLogin").onclick=()=>signIn($("adminEmail").value,$("adminPassword").value,"adminMsg");
-    }
+<button onclick="window.open('https://docs.google.com/spreadsheets/d/1dCgG5lrFsbLf7K-kSRuNCLKRk6kUq-eKFAptzHvi9eE/edit?usp=drivesdk', '_blank')">
+  📊 Planilha
+</button>  
+  }
   }
 }
 async function refreshAuth(){
