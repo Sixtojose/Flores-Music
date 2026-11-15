@@ -512,6 +512,12 @@ function openPanel(view){
   }else if(view==="admin"){
     if(currentAdmin){
       body.innerHTML=`<p>Conectado como <strong>${escapeHTML(currentAdmin.username)}</strong> · ${escapeHTML(currentAdmin.role)}</p><h4>Gerenciar seções da biblioteca</h4><div class="section-admin"><input id="newSectionName" maxlength="35" placeholder="Nome da nova seção"><button class="primary" id="addSectionBtn" type="button">Criar seção</button></div><div id="adminSectionsList"></div><h4>Gerenciar músicas</h4><p class="muted">Para selecionar músicas, mantenha uma pressionada por um instante. Depois toque nas outras para selecionar várias.</p><button type="button" id="adminManageMusicBtn">Abrir biblioteca para gerenciar músicas</button><div class="admin-actions"><button type="button" class="danger" id="deleteSelectedSectionsBtn">Apagar selecionadas</button></div><div id="adminUsersList">Carregando administradores…</div><p class="muted">A criação e remoção de contas administrativas precisa de uma função segura no servidor; não será feita diretamente pelo HTML nem expondo chave secreta.</p><button type="button" id="adminSignOut">Sair</button>`;
+      body.insertAdjacentHTML("beforeend", `
+  <button onclick="window.open('https://docs.google.com/spreadsheets/d/1dCgG5lrFsbLf7K-kSRuNCLKRk6kUq-eKFAptzHvi9eE/edit', '_blank')"
+  style="padding:14px 22px;margin:15px;background:#16a34a;color:white;border:0;border-radius:8px;font-size:16px;">
+    📊 Abrir Planilha
+  </button>
+`);
       loadAdminUsers();loadSections();renderAdminSections();$("addSectionBtn").onclick=addSection;$("deleteSelectedSectionsBtn").onclick=deleteSelectedSections;$("adminSignOut").onclick=signOut;$("adminManageMusicBtn").onclick=()=>{ $("accountPanel").hidden=true; tab="all"; document.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab==="all")); cancelTrackSelection(); render(); window.scrollTo({top:document.querySelector(".tabs").offsetTop,behavior:"smooth"}); };
     }else{
       body.innerHTML='<p>Área restrita. Entre com o e-mail e a senha da conta administradora.</p><label for="adminEmail">E-mail</label><input id="adminEmail" type="email" autocomplete="username" placeholder="E-mail do administrador"><label for="adminPassword">Senha</label><input id="adminPassword" type="password" autocomplete="current-password" placeholder="Senha"><button class="primary wide" id="adminLogin" type="button">Entrar no painel</button><p id="adminMsg" class="muted"></p>';
@@ -599,11 +605,6 @@ async function addSection(){
 async function assignSelectedToSection(){
   const sectionId=$("sectionTargetSelect").value,ids=[...selectedTracks];
   if(!currentAdmin){alert("Somente administradores podem organizar as músicas.");return;}
-  body.insertAdjacentHTML("beforeend", `
-  <button onclick="window.open('https://docs.google.com/spreadsheets/d/1dCgG5lrFsbLf7K-kSRuNCLKRk6kUq-eKFAptzHvi9eE/edit', '_blank')">
-    📊 Planilha
-  </button>
-`);
   if(!sectionId){alert("Escolha uma seção primeiro.");return;}
   if(!ids.length){alert("Selecione pelo menos uma música.");return;}
   const rows=ids.map(media_id=>({media_id,section_id:sectionId}));
